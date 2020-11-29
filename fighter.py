@@ -122,10 +122,7 @@ class fighter(object):
                 print(data)
                 return True
             elif data[1] != None:
-                direction = "positive" if data[1][1] >= 0 else "negative" 
-                result = f"{data[1][0]}_{direction}"
                 self.buttonLog.join((data[1][0], data[1][1]))
-                print(result)
                 return True
             else:
                 return False
