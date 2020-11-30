@@ -4,7 +4,7 @@ import math
 
 class fighter(object): 
     _registry = []
-    GRAVITY = -0.25
+    GRAVITY = -0.5
     FLOOR = 300
     startingHealth = 200
     controls = {
@@ -24,10 +24,10 @@ class fighter(object):
         16: "self.strongKick()",                                              # Y - Strong Kick
         'left_trigger': "pass",                                        # Left Trigger Press
         'right_trigger': "pass",                                       # Right Trigger Press
-        'l_thumb_x': "self.body.moveBody(distance, 0)",                         # Left Stick X Positive
+        'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                         # Left Stick X Positive
         'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
-        'r_thumb_x': "self.body.moveBody(3 * distance, 0)",                     # Right Stick X Positive
-        'r_thumb_y': "self.y -= 15",                                            # Right Stick Y Positive
+        'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
+        'r_thumb_y': "pass",                                            # Right Stick Y Positive
         None:"pass"
     }
 
@@ -48,7 +48,10 @@ class fighter(object):
     @staticmethod
     def applyGravity():
         for player in fighter._registry:
-            player.body.moveBody(0, fighter.GRAVITY)
+            if player.body.center[1] + player.body.getHeight() < fighter.FLOOR:
+                player.body.moveBody(0, fighter.GRAVITY)
+            else:
+                player.canJump = True
         pass
     
     @staticmethod
@@ -110,7 +113,9 @@ class fighter(object):
             pass
     ''' 
     def jump(self):
-        self.body.moveBody(0, 20)
+        if self.canJump:
+            self.body.moveBody(0, self.body.getHeight())
+            self.canJump = False
 
     def getPos(self):
         return (self.x, self.y)
@@ -152,6 +157,7 @@ class body(object):
         # Center
         self.center = center
         self.createBody()
+        self.moveBody(0, self.getHeight())
 
     def __str__(self):
         return f"Center point at {self.center}"
@@ -160,20 +166,24 @@ class body(object):
         self.head = self.getPart(self.center, 0, (body.THH + body.HR))
         # Left Arm
         self.shoulderL = self.getPart(self.center, -1 * body.THW, body.THH)
-        self.elbowL = self.getLimb(self.shoulderL, body.AL, 225)
-        self.handL = self.getLimb(self.elbowL, body.AL, 135)
+        self.moveLimb("leftArm", 225, 135)
+        # self.elbowL = self.getLimb(self.shoulderL, body.AL, 225)
+        # self.handL = self.getLimb(self.elbowL, body.AL, 135)
         # Right Arm
         self.shoulderR = self.getPart(self.center, body.THW, body.THH)
-        self.elbowR = self.getLimb(self.shoulderR, body.AL, 315)
-        self.handR = self.getLimb(self.elbowR, body.AL, 45)
+        self.moveLimb("rightArm", 315, 45)
+        # self.elbowR = self.getLimb(self.shoulderR, body.AL, 315)
+        # self.handR = self.getLimb(self.elbowR, body.AL, 45)
         # Left Leg
         self.hipL = self.getPart(self.center, -1 * body.THW, -1* body.THH)
-        self.kneeL = self.getLimb(self.hipL, body.LL, 240)
-        self.footL = self.getLimb(self.kneeL, body.LL, 270)
+        self.moveLimb("leftLeg", 240, 270)
+        # self.kneeL = self.getLimb(self.hipL, body.LL, 240)
+        # self.footL = self.getLimb(self.kneeL, body.LL, 270)
         # Right Leg
         self.hipR = self.getPart(self.center, body.THW, -1* body.THH)
-        self.kneeR = self.getLimb(self.hipR, body.LL, 300)
-        self.footR = self.getLimb(self.kneeR, body.LL, 270)
+        self.moveLimb("rightLeg", 300, 270)
+        # self.kneeR = self.getLimb(self.hipR, body.LL, 300)
+        # self.footR = self.getLimb(self.kneeR, body.LL, 270)
 
     def getPart(self, center, xOff, yOff):
         x, y = center
@@ -210,4 +220,3 @@ class body(object):
         setattr(self, saddle, saddlePos)
         pass
     pass
-

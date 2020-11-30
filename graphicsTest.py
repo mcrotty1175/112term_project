@@ -3,15 +3,16 @@ from fighter import *
 
 def appStarted(app):
     app.count = 0
-    app.timerDelay = 2
-    fighter.FLOOR = app.height - 100
+    app.timerDelay = 1
     fighter.GRAVITY = -.25
+    fighter.FLOOR = app.height - 20
     app.player1 = fighter(app.width*(1/2), 0)
+    
     app.limbWidth = body.LW
 
 def timerFired(app):
     app.count += 1
-    # fighter.applyGravity()
+    fighter.applyGravity()
     # print(app.player1.body)
     app.player1.move()
 
@@ -76,7 +77,7 @@ def drawLegs(app, canvas):
     pass
 
 def redrawAll(app, canvas):
-    if app.count % 16 > 0:
+    if app.count % 33 > 0:
         return
     app._canvas.delete(ALL)
     drawArms(app, canvas)
