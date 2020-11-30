@@ -42,8 +42,6 @@ class fighter(object):
         self.controller = X_input.sampleJoystick(controller)
         self.buttonLog = simpleQueue(5)
         self.frameTime = 0
-        self.crouch = False
-        self.inCombo = False
         self.opponent = None
 
     # Static Methods
@@ -134,37 +132,46 @@ class body(object):
     AL = 30                                                                     # ARM_LENGTH
     LL = 30                                                                     # LEG_LENGTH
     LW = 8                                                                      # LIMB_WIDTH
+    bodyParts = ["head", "center",
+                "shoulderL", "elbowL", "handL",
+                "shoulderR", "elbowR", "handR",
+                "hipL", "kneeL", "footL",
+                "hipR", "kneeR", "footR"]
+    limbs = {
+        "leftArm":[AL, "shoulderL", "elbowL", "handL"],
+        "rightArm":[AL, "shoulderR", "elbowR", "handR"],
+        "leftLeg":[LL, "hipL", "kneeL", "footL"],
+        "rightLeg":[LL, "hipR", "kneeR", "footR"]
+    }
+
 
     def __init__(self, center):
         # Center
-        self.head = self.getPart(center, 0, (body.THH + body.HR))
         self.center = center
-        # Left Arm
-        self.shoulderL = self.getPart(center, -1 * body.THW, body.THH)
-        self.elbowL = self.getLimb(self.shoulderL, body.AL, 225)
-        self.handL = self.getLimb(self.elbowL, body.AL, 135)
-        # Right Arm
-        self.shoulderR = self.getPart(center, body.THW, body.THH)
-        self.elbowR = self.getLimb(self.shoulderR, body.AL, 315)
-        self.handR = self.getLimb(self.elbowR, body.AL, 45)
-        # Left Leg
-        self.hipL = self.getPart(center, -1 * body.THW, -1* body.THH)
-        self.kneeL = self.getLimb(self.hipL, body.LL, 240)
-        self.footL = self.getLimb(self.kneeL, body.LL, 270)
-        # Right Leg
-        self.hipR = self.getPart(center, body.THW, -1* body.THH)
-        self.kneeR = self.getLimb(self.hipR, body.LL, 300)
-        self.footR = self.getLimb(self.kneeR, body.LL, 270)
-
-        self.height = self.getHeight()
-        self.bodyParts = ["head", "center",
-                          "shoulderL", "elbowL", "handL",
-                          "shoulderR", "elbowR", "handR",
-                          "hipL", "kneeL", "footL",
-                          "hipR", "kneeR", "footR"]
+        self.createBody()
+        self.moveLimb("rightArm", 45, 90)
 
     def __str__(self):
         return f"Center point at {self.center}"
+
+    def createBody(self):
+        self.head = self.getPart(self.center, 0, (body.THH + body.HR))
+        # Left Arm
+        self.shoulderL = self.getPart(self.center, -1 * body.THW, body.THH)
+        self.elbowL = self.getLimb(self.shoulderL, body.AL, 225)
+        self.handL = self.getLimb(self.elbowL, body.AL, 135)
+        # Right Arm
+        self.shoulderR = self.getPart(self.center, body.THW, body.THH)
+        self.elbowR = self.getLimb(self.shoulderR, body.AL, 315)
+        self.handR = self.getLimb(self.elbowR, body.AL, 45)
+        # Left Leg
+        self.hipL = self.getPart(self.center, -1 * body.THW, -1* body.THH)
+        self.kneeL = self.getLimb(self.hipL, body.LL, 240)
+        self.footL = self.getLimb(self.kneeL, body.LL, 270)
+        # Right Leg
+        self.hipR = self.getPart(self.center, body.THW, -1* body.THH)
+        self.kneeR = self.getLimb(self.hipR, body.LL, 300)
+        self.footR = self.getLimb(self.kneeR, body.LL, 270)
 
     def getPart(self, center, xOff, yOff):
         x, y = center
@@ -184,11 +191,21 @@ class body(object):
         return bottomFoot - self.center[1]
 
     def moveBody(self, dx, dy):
-        for i in range(len(self.bodyParts)):
-            x,y = getattr(self, self.bodyParts[i])
+        for i in range(len(body.bodyParts)):
+            x,y = getattr(self, body.bodyParts[i])
             x += dx
             y -= dy
-            setattr(self, self.bodyParts[i], (x,y))
+            setattr(self, body.bodyParts[i], (x,y))
         pass
     
+    def moveLimb(self, limb, theta1, theta2):
+        limbParts = body.limbs[limb]
+        length, socket, hinge, saddle = limbParts
+        socketPos = getattr(self, socket)
+        hingePos = self.getLimb(socketPos, length, theta1)
+        setattr(self, hinge, hingePos)
+        saddlePos = self.getLimb(hingePos, length, theta2)
+        setattr(self, saddle, saddlePos)
+        pass
     pass
+
