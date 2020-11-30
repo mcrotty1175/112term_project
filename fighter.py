@@ -8,25 +8,25 @@ class fighter(object):
     FLOOR = 300
     startingHealth = 200
     controls = {
-        '1': "self.health += 5",                                                # Dpad Up
-        '2': "self.health -= 5",                                                # Dpad Down
-        '3': "self.size -= 10",                                                 # Dpad Left
-        '4': "self.size += 10",                                                 # Dpad Right
-        '5': "pass",                                                            # Menu
-        '6': "pass",                                                            # View
-        '7': "pass",                                                            # L_Stick
-        '8': "pass",                                                            # R_Stick
-        '9': "self.color = 'red'",                                              # Left Bumper
-        '10': "self.color = 'blue'",                                            # Right Bumper
-        '13': "self.fastPunch()",                                               # A - Fast Punch
-        '14': "self.strongPunch()",                                             # B - Strong Punch
-        '15': "self.fastKick()",                                                # X - Fast Kick
-        '16': "self.strongKick()",                                              # Y - Strong Kick
-        'left_trigger_positive': "pass",                                        # Left Trigger Press
-        'right_trigger_positive': "pass",                                       # Right Trigger Press
-        'l_thumb_x': "self.body.moveBody(5, 0)",                                # Left Stick X Positive
+        1: "self.health += 5",                                                # Dpad Up
+        2: "self.health -= 5",                                                # Dpad Down
+        3: "self.size -= 10",                                                 # Dpad Left
+        4: "self.size += 10",                                                 # Dpad Right
+        5: "pass",                                                            # Menu
+        6: "pass",                                                            # View
+        7: "pass",                                                            # L_Stick
+        8: "pass",                                                            # R_Stick
+        9: "self.color = 'red'",                                              # Left Bumper
+        10: "self.color = 'blue'",                                            # Right Bumper
+        13: "self.body.moveLimb('rightArm', 45, 90)",                         # A - Fast Punch
+        14: "self.strongPunch()",                                             # B - Strong Punch
+        15: "self.fastKick()",                                                # X - Fast Kick
+        16: "self.strongKick()",                                              # Y - Strong Kick
+        'left_trigger': "pass",                                        # Left Trigger Press
+        'right_trigger': "pass",                                       # Right Trigger Press
+        'l_thumb_x': "self.body.moveBody(distance, 0)",                         # Left Stick X Positive
         'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
-        'r_thumb_x': "self.body.moveBody(15, 0)",                               # Right Stick X Positive
+        'r_thumb_x': "self.body.moveBody(3 * distance, 0)",                     # Right Stick X Positive
         'r_thumb_y': "self.y -= 15",                                            # Right Stick Y Positive
         None:"pass"
     }
@@ -62,9 +62,12 @@ class fighter(object):
     # Class Methods
     def move(self):
         if self.getControllerInput():
-            self.crouch = False
             command = self.buttonLog.getLastElement()
-            exec(fighter.controls[command])
+            if isinstance(command, int):
+                exec(fighter.controls[command])
+            elif isinstance(command, tuple):
+                distance = command[1]
+                exec(fighter.controls[command[0]])
 
     def distance(self):
         x0, y0 = self.getPos()
@@ -149,7 +152,6 @@ class body(object):
         # Center
         self.center = center
         self.createBody()
-        self.moveLimb("rightArm", 45, 90)
 
     def __str__(self):
         return f"Center point at {self.center}"

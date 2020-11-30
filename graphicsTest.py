@@ -3,7 +3,7 @@ from fighter import *
 
 def appStarted(app):
     app.count = 0
-    app.timerDelay = 1
+    app.timerDelay = 2
     fighter.FLOOR = app.height - 100
     fighter.GRAVITY = -.25
     app.player1 = fighter(app.width*(1/2), 0)
@@ -20,13 +20,13 @@ def drawTorso(app, canvas):
     x,y = app.player1.body.center
     w = body.THW
     h = body.THH
-    canvas.create_rectangle(x-w, y-h, x+w, y+h, fill=color)
+    canvas.create_rectangle(x-w, y-h, x+w, y+h, fill=color, width=0)
 
 def drawHead(app, canvas):
     color = app.player1.color
     x,y = app.player1.body.head
     r = body.HR
-    canvas.create_oval(x-r, y-r, x+r, y+r, fill=color)
+    canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, width=0)
 
 def drawArms(app, canvas):
     color = app.player1.color
@@ -76,7 +76,7 @@ def drawLegs(app, canvas):
     pass
 
 def redrawAll(app, canvas):
-    if app.count % 33 > 0:
+    if app.count % 16 > 0:
         return
     app._canvas.delete(ALL)
     drawArms(app, canvas)
