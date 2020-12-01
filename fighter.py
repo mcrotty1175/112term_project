@@ -8,26 +8,26 @@ class fighter(object):
     FLOOR = 300
     startingHealth = 200
     controls = {
-        1: "self.health += 5",                                                # Dpad Up
-        2: "self.health -= 5",                                                # Dpad Down
-        3: "self.size -= 10",                                                 # Dpad Left
-        4: "self.size += 10",                                                 # Dpad Right
-        5: "pass",                                                            # Menu
-        6: "pass",                                                            # View
-        7: "pass",                                                            # L_Stick
-        8: "pass",                                                            # R_Stick
-        9: "self.color = 'red'",                                              # Left Bumper
-        10: "self.color = 'blue'",                                            # Right Bumper
-        13: "self.body.moveLimb('rightArm', 45, 90)",                         # A - Fast Punch
-        14: "self.strongPunch()",                                             # B - Strong Punch
-        15: "self.fastKick()",                                                # X - Fast Kick
-        16: "self.strongKick()",                                              # Y - Strong Kick
-        'left_trigger': "pass",                                        # Left Trigger Press
-        'right_trigger': "pass",                                       # Right Trigger Press
-        'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                         # Left Stick X Positive
+        1: "self.health += 5",                                                  # Dpad Up
+        2: "self.health -= 5",                                                  # Dpad Down
+        3: "self.size -= 10",                                                   # Dpad Left
+        4: "self.size += 10",                                                   # Dpad Right
+        5: "pass",                                                              # Menu
+        6: "pass",                                                              # View
+        7: "pass",                                                              # L_Stick
+        8: "pass",                                                              # R_Stick
+        9: "self.color = 'red'",                                                # Left Bumper
+        10: "self.color = 'blue'",                                              # Right Bumper
+        13: "self.body.moveLimb('rightArm', 45, 90)",                           # A - Fast Punch
+        14: "self.strongPunch()",                                               # B - Strong Punch
+        15: "self.fastKick()",                                                  # X - Fast Kick
+        16: "self.strongKick()",                                                # Y - Strong Kick
+        'left_trigger': "pass",                                                 # Left Trigger Press
+        'right_trigger': "pass",                                                # Right Trigger Press
+        'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
         'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
         'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
-        'r_thumb_y': "pass",                                            # Right Stick Y Positive
+        'r_thumb_y': "self.body.idle2()",                                       # Right Stick Y Positive
         None:"pass"
     }
 
@@ -37,13 +37,27 @@ class fighter(object):
         self.color = "red"
         self.x = startX
         self.body = body((startX, fighter.FLOOR))
-        self.y = self.body.getHeight()
         self.health = fighter.startingHealth
-        self.controller = X_input.sampleJoystick(controller)
+        try:
+            self.controller = X_input.sampleJoystick(controller)
+        except Exception:
+            self.controller = None
         self.buttonLog = simpleQueue(5)
         self.frameTime = 0
+        self.currentState = "idle1"
+        self.nextState = "idle2"
         self.opponent = None
-
+        self.states = {
+            "idleStates":["idle1", "idle2"],
+            "fastPunchStates":["fastPunch1", "fastPunch2", "fastPunch3"],
+            "strongPunchStates":["strongPunch1", "strongPunch2", "strongPunch3",
+                                "strongPunch4", "strongPunch5"],
+            "fastKickStages":["fastKick1", "fastKick2",
+                            "fastKick2", "fastKick4"],
+            "strongPunchStates":["strongKick1", "strongKick2", "strongKick3",
+                                "strongKick4", "strongKick5", "strongKick6"],
+            "crouchStates":["crouch"],
+        }
     # Static Methods
     @staticmethod
     def applyGravity():
@@ -53,24 +67,39 @@ class fighter(object):
             else:
                 player.canJump = True
         pass
-    
+
     @staticmethod
     def updateFrames():
         for player in fighter._registry:
-            if player.frameTime > 0:
-                player.frameTime -= 0.03
+            if player.getControllerInput():
+                command = player.buttonLog.getLastElement()
+                player.nextState = player.getNextState(command)
             else:
-                player.color = "red"
+                exec(f"player.{player.currentState}()")
+                player.currentState = player.nextState
+                player.nextState = player.getNextState()
 
     # Class Methods
+    def getNextState(self, command=None):
+        if self.currentState == "gameOver": return
+        elif command == None:
+            try:
+                for key in self.states:
+                    if self.currentState in self.states[key]:
+                        animation = self.states[key]
+                        return animation[animation.index(self.currentState) + 1]
+            except IndexError:
+                return "idle1"
+        else: return "idle1"
+            
+
     def move(self):
-        if self.getControllerInput():
-            command = self.buttonLog.getLastElement()
-            if isinstance(command, int):
-                exec(fighter.controls[command])
-            elif isinstance(command, tuple):
-                distance = command[1]
-                exec(fighter.controls[command[0]])
+        command = self.buttonLog.getLastElement()
+        if isinstance(command, int):
+            exec(fighter.controls[command])
+        elif isinstance(command, tuple):
+            distance = command[1]
+            exec(fighter.controls[command[0]])
 
     def distance(self):
         x0, y0 = self.getPos()
@@ -79,39 +108,48 @@ class fighter(object):
 
     def duck(self):
         self.crouch = True
-    '''    
-        def fastPunch(self):
-            if self.frameTime <= 0:
-                self.frameTime = 3
-                self.color = "blue"
-                if self.distance() <= (self.size + self.opponent.size):
-                    self.opponent.health -= 3
-            pass
 
-        def strongPunch(self):
-            if self.frameTime <= 0:
-                self.frameTime = 7
-                self.color = "green"
-                if self.distance() <= (self.size + self.opponent.size):
-                    self.opponent.health -= 10
-            pass
+    def idle1(self):
+        # Head
+        self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+        # Left Arm
+        self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+        self.body.moveLimb("leftArm", 225, 135)
+        # Right Arm
+        self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+        self.body.moveLimb("rightArm", 315, 45)
+        # Left Leg
+        self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+        self.body.moveLimb("leftLeg", 240, 270)
+        # Right Leg
+        self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+        self.body.moveLimb("rightLeg", 300, 270)
+        
+    def idle2(self):
+        # Head
+        self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+        # Left Arm
+        self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+        self.body.moveLimb("leftArm", 225, 135)
+        # Right Arm
+        self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+        self.body.moveLimb("rightArm", 0, 90)
+        # Left Leg
+        self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+        self.body.moveLimb("leftLeg", 240, 270)
+        # Right Leg
+        self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+        self.body.moveLimb("rightLeg", 300, 270)
 
-        def fastKick(self):
-            if self.frameTime <= 0:
-                self.frameTime = 5
-                self.color = "cyan"
-                if self.distance() <= (self.size + self.opponent.size):
-                    self.opponent.health -= 5
-            pass
+    def fastPunch1(self):
+        self.body.moveLimb("leftArm", -30, 30)
 
-        def strongKick(self):
-            if self.frameTime <= 0:
-                self.frameTime += 10
-                self.color = "black"
-                if self.distance() <= (self.size + self.opponent.size):
-                    self.opponent.health -= 15
-            pass
-    ''' 
+    def fastPunch2(self):
+        self.body.moveLimb("leftArm", 0, 0)
+        
+    def fastPunch3(self):
+        self.body.moveLimb("leftArm", -15, 15)
+
     def jump(self):
         if self.canJump:
             self.body.moveBody(0, self.body.getHeight())
@@ -121,17 +159,14 @@ class fighter(object):
         return (self.x, self.y)
  
     def getControllerInput(self):
-        data = next(self.controller)
-        if data != None:
-            if data[0] != None and data[0][2] == 1:
-                self.buttonLog.join(data[0][1])
-                print(data)
-                return True
-            elif data[1] != None:
-                self.buttonLog.join((data[1][0], data[1][1]))
-                return True
-            else:
-                return False
+        if self.controller != None:
+            data = next(self.controller)
+            if data != None:
+                if data[0] != None and data[0][2] == 1:
+                    self.buttonLog.join(data[0][1])
+                elif data[1] != None:
+                    self.buttonLog.join((data[1][0], data[1][1]))
+                self.move
 
 class body(object):
     THW = 10                                                                    # TORSO_HALF_WIDTH
@@ -156,34 +191,24 @@ class body(object):
     def __init__(self, center):
         # Center
         self.center = center
-        self.createBody()
-        self.moveBody(0, self.getHeight())
-
-    def __str__(self):
-        return f"Center point at {self.center}"
-
-    def createBody(self):
+         # Head
         self.head = self.getPart(self.center, 0, (body.THH + body.HR))
         # Left Arm
         self.shoulderL = self.getPart(self.center, -1 * body.THW, body.THH)
         self.moveLimb("leftArm", 225, 135)
-        # self.elbowL = self.getLimb(self.shoulderL, body.AL, 225)
-        # self.handL = self.getLimb(self.elbowL, body.AL, 135)
         # Right Arm
         self.shoulderR = self.getPart(self.center, body.THW, body.THH)
         self.moveLimb("rightArm", 315, 45)
-        # self.elbowR = self.getLimb(self.shoulderR, body.AL, 315)
-        # self.handR = self.getLimb(self.elbowR, body.AL, 45)
         # Left Leg
         self.hipL = self.getPart(self.center, -1 * body.THW, -1* body.THH)
         self.moveLimb("leftLeg", 240, 270)
-        # self.kneeL = self.getLimb(self.hipL, body.LL, 240)
-        # self.footL = self.getLimb(self.kneeL, body.LL, 270)
         # Right Leg
         self.hipR = self.getPart(self.center, body.THW, -1* body.THH)
         self.moveLimb("rightLeg", 300, 270)
-        # self.kneeR = self.getLimb(self.hipR, body.LL, 300)
-        # self.footR = self.getLimb(self.kneeR, body.LL, 270)
+        self.moveBody(0, self.getHeight())
+
+    def __str__(self):
+        return f"Center point at {self.center}"
 
     def getPart(self, center, xOff, yOff):
         x, y = center

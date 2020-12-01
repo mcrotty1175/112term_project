@@ -7,7 +7,6 @@ def appStarted(app):
     fighter.GRAVITY = -.25
     fighter.FLOOR = app.height - 20
     app.player1 = fighter(app.width*(1/2), 0)
-    
     app.limbWidth = body.LW
 
 def timerFired(app):
@@ -15,7 +14,23 @@ def timerFired(app):
     fighter.applyGravity()
     if app.count % 66 > 0:
         fighter.updateFrames()
-    app.player1.move()
+
+def keyPressed(app, event):
+    if event.key in ["Up", "w"]:
+        app.player1.buttonLog.join(('l_thumb_y', 1))
+        app.player1.move()
+    elif event.key in ["Down", "s"]:
+        app.player1.buttonLog.join(('l_thumb_y', -1))
+        app.player1.move()
+    elif event.key in ["Left", "a"]:
+        app.player1.buttonLog.join(('l_thumb_x', -2))
+        app.player1.move()
+    elif event.key in ["Right", "d"]:
+        app.player1.buttonLog.join(('l_thumb_x', 2))
+        app.player1.move()
+    elif event.key == "k":
+        app.player1.currentState = "fastPunch1"
+        app.player1.nextState = "fastPunch1" 
 
 def drawTorso(app, canvas):
     color = app.player1.color
