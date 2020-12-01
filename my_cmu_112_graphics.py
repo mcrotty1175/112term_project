@@ -382,7 +382,7 @@ class App(object):
         if (not app._running): return
         if ('deferredRedrawAll' in app._afterIdMap): return # wait for pending call
         app._canvas.inRedrawAll = True
-        if app._paused:
+        if app._paused: # Change to separate timerDelay and redrawAll
             app._canvas.delete(ALL)
             width,outline = (10,'red') if app._paused else (0,'white')
             app._canvas.create_rectangle(0, 0, app.width, app.height, fill='white', width=width, outline=outline)

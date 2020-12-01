@@ -58,4 +58,4 @@ class simpleQueue(object):
 
     def getLastElement(self):
         if self.list != []:
-            return str(self.list[-1])
+            return self.list[-1]
