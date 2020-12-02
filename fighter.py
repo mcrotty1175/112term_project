@@ -16,25 +16,25 @@ class fighter(object):
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
         8: "pass",                                                              # R_Stick
-        9: "self.color = 'red'",                                                # Left Bumper
-        10: "self.color = 'blue'",                                              # Right Bumper
+        9: "self.color = 'green'",                                              # Left Bumper
+        10: "self.color = 'pink'",                                              # Right Bumper
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
-        14: "self.strongPunch()",                                               # B - Strong Punch
-        15: "self.fastKick()",                                                  # X - Fast Kick
-        16: "self.strongKick()",                                                # Y - Strong Kick
+        14: "self.nextState = 'fastPunch1'",                                    # B - Strong Punch
+        15: "self.nextState = 'fastPunch1'",                                    # X - Fast Kick
+        16: "self.nextState = 'fastPunch1'",                                    # Y - Strong Kick
         'left_trigger': "pass",                                                 # Left Trigger Press
         'right_trigger': "pass",                                                # Right Trigger Press
         'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
         'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
         'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
-        'r_thumb_y': "self.body.idle2()",                                       # Right Stick Y Positive
+        'r_thumb_y': "pass",                                                    # Right Stick Y Positive
         None:"pass"
     }
 
     # Magic Methods
-    def __init__(self, startX, controller):
+    def __init__(self, startX, controller, color="red"):
         fighter._registry.append(self)
-        self.color = "red"
+        self.color = color
         self.x = startX
         self.body = body((startX, fighter.FLOOR))
         self.health = fighter.startingHealth
@@ -71,10 +71,10 @@ class fighter(object):
     @staticmethod
     def updateFrames():
         for player in fighter._registry:
-            if player.getControllerInput():
-                command = player.buttonLog.getLastElement()
-                player.nextState = player.getNextState(command)
-            else:
+            # if player.getControllerInput():
+            #     command = player.buttonLog.getLastElement()
+            #     player.nextState = player.getNextState(command)
+            # else:
                 exec(f"player.{player.currentState}()")
                 player.currentState = player.nextState
                 player.nextState = player.getNextState()
@@ -142,13 +142,22 @@ class fighter(object):
         self.body.moveLimb("rightLeg", 300, 270)
 
     def fastPunch1(self):
-        self.body.moveLimb("rightArm", -30, 30)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftArm", 210, 150)
+        else:
+            self.body.moveLimb("rightArm", -30, 30)
 
     def fastPunch2(self):
-        self.body.moveLimb("rightArm", 0, 0)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftArm", 180, 180)
+        else:
+            self.body.moveLimb("rightArm", 0, 0)
         
     def fastPunch3(self):
-        self.body.moveLimb("rightArm", -15, 15)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftArm", 195, 165)
+        else:
+            self.body.moveLimb("rightArm", -15, 15)
 
     def jump(self):
         if self.canJump:
