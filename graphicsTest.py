@@ -13,9 +13,8 @@ def appStarted(app):
 def timerFired(app):
     app.count += 1
     fighter.applyGravity()
-    if app.count % 66 > 0:
+    if app.count % 33 > 0:
         fighter.updateFrames()
-    app.player1.move()
 
 def drawTorso(app, canvas):
     color = app.player1.color
@@ -78,7 +77,7 @@ def drawLegs(app, canvas):
     pass
 
 def redrawAll(app, canvas):
-    if app.count % 66 > 0:
+    if app.count % 33 > 0:
         return
     app._canvas.delete(ALL)
     drawArms(app, canvas)

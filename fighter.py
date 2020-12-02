@@ -18,7 +18,7 @@ class fighter(object):
         8: "pass",                                                              # R_Stick
         9: "self.color = 'red'",                                                # Left Bumper
         10: "self.color = 'blue'",                                              # Right Bumper
-        13: "self.body.moveLimb('rightArm', 45, 90)",                           # A - Fast Punch
+        13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.strongPunch()",                                               # B - Strong Punch
         15: "self.fastKick()",                                                  # X - Fast Kick
         16: "self.strongKick()",                                                # Y - Strong Kick
@@ -45,10 +45,10 @@ class fighter(object):
         self.buttonLog = simpleQueue(5)
         self.frameTime = 0
         self.currentState = "idle1"
-        self.nextState = "idle2"
+        self.nextState = "idle1"
         self.opponent = None
         self.states = {
-            "idleStates":["idle1", "idle2"],
+            "idleStates":["idle1"],
             "fastPunchStates":["fastPunch1", "fastPunch2", "fastPunch3"],
             "strongPunchStates":["strongPunch1", "strongPunch2", "strongPunch3",
                                 "strongPunch4", "strongPunch5"],
@@ -142,13 +142,13 @@ class fighter(object):
         self.body.moveLimb("rightLeg", 300, 270)
 
     def fastPunch1(self):
-        self.body.moveLimb("leftArm", -30, 30)
+        self.body.moveLimb("rightArm", -30, 30)
 
     def fastPunch2(self):
-        self.body.moveLimb("leftArm", 0, 0)
+        self.body.moveLimb("rightArm", 0, 0)
         
     def fastPunch3(self):
-        self.body.moveLimb("leftArm", -15, 15)
+        self.body.moveLimb("rightArm", -15, 15)
 
     def jump(self):
         if self.canJump:
@@ -166,7 +166,7 @@ class fighter(object):
                     self.buttonLog.join(data[0][1])
                 elif data[1] != None:
                     self.buttonLog.join((data[1][0], data[1][1]))
-                self.move
+                self.move()
 
 class body(object):
     THW = 10                                                                    # TORSO_HALF_WIDTH
