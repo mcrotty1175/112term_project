@@ -59,3 +59,11 @@ class simpleQueue(object):
     def getLastElement(self):
         if self.list != []:
             return self.list[-1]
+
+    def checkCombos(self, combos):
+        if len(self.list) < 2:
+            return None
+        elif self.list in combos:
+            return self.list
+        else:
+            return self.pop().checkCombos(combos)
