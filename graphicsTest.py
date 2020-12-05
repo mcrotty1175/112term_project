@@ -5,7 +5,7 @@ def appStarted(app):
     app.background = app.loadImage("background1.jpg")
     app.count = 0
     app.timerDelay = 100
-    fighter.GRAVITY = -1.5
+    fighter.GRAVITY = -0.25 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = fighter(app.width*(1/3), 0, "red")
     try:

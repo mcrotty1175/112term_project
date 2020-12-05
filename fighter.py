@@ -10,8 +10,8 @@ class fighter(object):
     controls = {
         1: "self.health += 5",                                                  # Dpad Up
         2: "self.health -= 5",                                                  # Dpad Down
-        3: "self.opponent.health -= 10",                                        # Dpad Left
-        4: "self.opponent.health += 10",                                        # Dpad Right
+        3: "self.dealDamage('handL', 50)",                                        # Dpad Left
+        4: "self.dealDamage('handR', 50)",                                        # Dpad Right
         5: "pass",                                                              # Menu
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
@@ -25,7 +25,7 @@ class fighter(object):
         'left_trigger': "pass",                                                 # Left Trigger Press
         'right_trigger': "pass",                                                # Right Trigger Press
         'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
-        'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
+        'l_thumb_y': "self.jump(distance)",                                     # Left Stick Y Positive 
         'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
         'r_thumb_y': "self.nextState = 'crouch'",                               # Right Stick Y Positive
         None:"pass"
@@ -47,7 +47,7 @@ class fighter(object):
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
-        self.combo = None
+        self.combo = False
         self.states = {
             "idleStates":["idle1"],
             "fastPunchStates":["fastPunch1", "fastPunch2", "fastPunch3"],
@@ -64,7 +64,8 @@ class fighter(object):
         for player in fighter._registry:
             if player.body.center[1] + player.body.getHeight() < fighter.FLOOR:
                 player.body.moveBody(0, fighter.GRAVITY)
-            else:
+            elif player.body.center[1] + player.body.getHeight() >= fighter.FLOOR:
+                player.body.moveBody(0, player.getOptimalHeightDelta())
                 player.canJump = True
         pass
 
@@ -80,6 +81,11 @@ class fighter(object):
             player.nextState = player.getNextState()
 
     # Class Methods
+    def getOptimalHeightDelta(self):
+        optimalHeight = fighter.FLOOR - self.body.getHeight()
+        actualHeight = self.body.center[1]
+        return  actualHeight - optimalHeight
+    
     def getNextState(self): # Figures out what to draw next
         if self.currentState == "gameOver": return
         elif self.combo == None:
@@ -102,24 +108,29 @@ class fighter(object):
             distance = command[1]
             exec(fighter.controls[command[0]])
 
-    def distance(self): # Gets the distance between the players
+    def distance(self, x0, y0, x1, y1):
+        return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
+
+    def playerDistance(self): # Gets the distance between the players
         x0, y0 = self.getPos()
         x1, y1 = self.opponent.getPos()
-        return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
+        return self.distance(x0, y0, x1, y1)
 
     def crouch(self):
         self.body.moveLimb("leftLeg", 150, 270)
         self.body.moveLimb("rightLeg", 30, 270)
+        dy = self.getOptimalHeightDelta()
+        self.body.moveBody(0, dy)
 
     def idle1(self): # Default Idle Position
         # Head
         self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
         # Left Arm
         self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
-        self.body.moveLimb("leftArm", 225, 135)
+        self.body.moveLimb("leftArm", 225, 180)
         # Right Arm
         self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
-        self.body.moveLimb("rightArm", 315, 45)
+        self.body.moveLimb("rightArm", 315, 0)
         # Left Leg
         self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
         self.body.moveLimb("leftLeg", 240, 270)
@@ -143,81 +154,131 @@ class fighter(object):
         self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
         self.body.moveLimb("rightLeg", 300, 270)
 
-    def fastPunch1(self): # First frame of fast 
-        if self.opponent == None:
-            self.body.moveLimb("leftArm", 210, 150)
+    def dealDamage(self, appendage, baseDamage):
+        x0, y0 = getattr(self.body, appendage)
+        other = self.opponent.body
+        if ((other.hipL[0] < x0 < other.hipR[0]) and
+            (other.shoulderL[1] < y0 < other.hipR[1])):
+            self.opponent.health -= baseDamage
+            print("hello there")
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("leftArm", 210, 150)
-            else:
-                self.body.moveLimb("rightArm", -30, 30)
+            x1, y1 = other.head
+            if self.distance(x0, y0, x1, y1) <= body.HR:
+                self.opponent.health -= 1.5 * baseDamage
+                print("hello there")
+
+    def fastPunch1(self): # First frame of fast 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftArm", 210, 150)
+            self.dealDamage("handL", 50)
+            
+        else:
+            self.body.moveLimb("rightArm", -30, 30)
+            self.dealDamage("handH", 4)
 
     def fastPunch2(self):
-        if self.opponent == None:
+        if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftArm", 180, 180)
+            self.dealDamage("handL", 4)
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("leftArm", 180, 180)
-            else:
-                self.body.moveLimb("rightArm", 0, 0)
-        
+            self.body.moveLimb("rightArm", 0, 0)
+            self.dealDamage("handH", 4)
+    
     def fastPunch3(self):
-        if self.opponent == None:
+        if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftArm", 195, 165)
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("leftArm", 195, 165)
-            else:
-                self.body.moveLimb("rightArm", -15, 15)
+            self.body.moveLimb("rightArm", -15, 15)
+            self.dealDamage("handH", 4)
 
     def strongPunch1(self):
-        if self.opponent == None:
+        if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 225, 135)
+            self.dealDamage("handR", 6)
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("rightArm", 225, 135)
-            else:
-                self.body.moveLimb("rightArm", -30, 30)
+            self.body.moveLimb("leftArm", 315, 45)
+            self.dealDamage("handL", 6)
 
     def strongPunch2(self):
-        if self.opponent == None:
+        if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 180, 90)
+            self.dealDamage("handH", 4)
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("rightArm", 180, 90)
-            else:
-                self.body.moveLimb("rightArm", -30, 30)
+            self.body.moveLimb("leftArm", 0, 90)
+            self.dealDamage("handL", 4)
 
     def strongPunch3(self):
-        if self.opponent == None:
+        if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 135, 105)
+            self.dealDamage("handH", 4)
         else:
-            if self.opponent.body.center < self.body.center:
-                self.body.moveLimb("rightArm", 135, 105)
-            else:
-                self.body.moveLimb("rightArm", -30, 30)
+            self.body.moveLimb("leftArm", 45, 85)
+            self.dealDamage("handL", 4)
 
     def fastKick1(self):
-        self.body.moveLimb("leftLeg", 215, 215)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 215, 240)
+        else:
+            self.body.moveLimb("rightLeg", 320, 300)
 
     def fastKick2(self):
-        self.body.moveLimb("leftLeg", 200, 200)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 200, 225)
+        else:
+            self.body.moveLimb("rightLeg", 340, 315)
     
     def fastKick3(self):
-        self.body.moveLimb("leftLeg", 180, 180)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 180, 180)
+        else:
+            self.body.moveLimb("rightLeg", 0, 0)
     
     def fastKick4(self):
-        self.body.moveLimb("leftLeg", 200, 200)
-    
-    def strongKick1(self): print("hi1")
-    def strongKick2(self): print("hi2")
-    def strongKick3(self): print("hi3")
-    def strongKick4(self): print("hi4")
-    def strongKick5(self): print("hi5")
-    def strongKick6(self): print("hi6")
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 200, 200)
+        else:
+            self.body.moveLimb("rightLeg", 340, 340)
+    '''    
+    def strongKick1(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
 
-    def jump(self):
-        if self.canJump:
+    def strongKick2(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
+
+    def strongKick3(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
+
+    def strongKick4(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
+
+    def strongKick5(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
+
+    def strongKick6(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg")
+        else:
+            self.body.moveLimb("leftLeg")
+    '''
+    def jump(self, direction):
+        if direction < 0:
+            self.nextState = 'crouch'
+        elif self.canJump:
             self.body.moveBody(0, self.body.getHeight())
             self.canJump = False
 
@@ -289,6 +350,9 @@ class body(object):
         y -= length * math.sin(angleInRads)
         return (x,y)
 
+    def getJoint(self, joint):
+        return getattr(self, joint)
+
     def getHeight(self):
         bottomFoot = max(self.footL[1], self.footR[1])
         return bottomFoot - self.center[1]
@@ -310,4 +374,5 @@ class body(object):
         saddlePos = self.getLimb(hingePos, length, theta2)
         setattr(self, saddle, saddlePos)
         pass
+    
     pass
