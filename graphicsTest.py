@@ -10,13 +10,13 @@ def appStarted(app):
     app.winner = None
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
-    app.player1 = fighter(app.width*(1/3), 0, "red")
-    try:
-        app.player2 = fighter(app.width*(2/3), 1, "blue")
-        app.player1.opponent = app.player2
-        app.player2.opponent = app.player1
-    except Exception:
-        pass
+    app.player1 = xbox(app.width*(1/3), 0, "red")
+    # try:
+    #     app.player2 = xbox(app.width*(2/3), 1, "blue")
+    # except IndexError:
+    app.player2 = AI(app.width*(2/3), "blue")
+    app.player1.opponent = app.player2
+    app.player2.opponent = app.player1
     app.limbWidth = body.LW
     app.game = True
 

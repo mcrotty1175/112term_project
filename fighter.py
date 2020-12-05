@@ -1,6 +1,6 @@
 from simpleQueue import simpleQueue
 import X_input
-import math
+import math, random
 
 class fighter(object): 
     _registry = []
@@ -41,10 +41,6 @@ class fighter(object):
         self.x = startX
         self.body = body((startX, fighter.FLOOR))
         self.health = fighter.startingHealth
-        try:
-            self.controller = X_input.sampleJoystick(controller)
-        except Exception:
-            self.controller = None
         self.buttonLog = simpleQueue(10)
         self.frameTime = 0
         self.currentState = "idle1"
@@ -315,7 +311,7 @@ class fighter(object):
             self.canJump = False
 
     def getPos(self):
-        return (self.x, self.y)
+        return self.body.center
 
     def analogStick(self, intake):
         control, data = intake
@@ -339,21 +335,86 @@ class fighter(object):
                     self.move()
                 if data[1] != None:
                     self.analogStick(data[1])
-'''                   
+                   
 class AI(fighter):
     def __init__(self, startX, color):
-        super().__init__(startX, None, color)
+        super().__init__(startX, 0, color)
+        self.outputs = {
+            0:"self.buttonLog.join(13)",
+            1:"self.buttonLog.join(14)",
+            2:"self.buttonLog.join(15)",
+            3:"self.buttonLog.join(16)",
+            4:"self.analogStick(('l_thumb_x', 0.5))",
+            5:"self.analogStick(('r_thumb_y', 0.5))",
+            6:"self.analogStick(('l_thumb_x', -0.5))",
+            7:"self.analogStick(('r_thumb_y', -0.5))"
+        }
+        self.weights1 = [[0.2, 0.3, 0.2, 0.2, 0.2, 0.2, 0.2]]
+        self.weights2 = [[0.4],
+                         [0.5],
+                         [0.3],
+                         [0.2],
+                         [0.1],
+                         [0.5],
+                         [0.4]]
+        self.links = self.multiplyMatrix(self.weights1, self.weights2)
 
-    def getInput(self, app):
-        playerIsFar = self.playerDistance() / app.width
+    def getInput(self):
+        inputs = self.getInputsHelper()
+        output = self.multiplyMatrix(inputs, self.links)
+        flattened = [ i[0] for i in output]
+        command = flattened.index(max(flattened))
+        exec(self.outputs[command])
+        
+
+    def getInputsHelper(self):        
+        playerIsFar = self.playerDistance() / fighter.screenWidth
         playerIsNear = 1 - playerIsFar
-        healthDifference = self.health - self.opponent.health
-        playerNextMove = self.opponent.nextState
-        distanceBehindOther = 
-        distanceBehindMe = 
+        healthDifference = (self.health - self.opponent.health) / fighter.startingHealth
+        distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
+        distanceBehindMe = self.roomBehind() / fighter.screenWidth
         comboPotential = self.getComboPotential()
-        canJump = self.canJump
-'''
+        canJump = 1 if self.canJump else 0
+        return [[playerIsFar],
+                [playerIsNear],
+                [healthDifference],
+                [distanceBehindMe],
+                [distanceBehindOther],
+                [comboPotential],
+                [canJump]]
+
+    def getComboPotential(self):
+        return random.random()
+
+    # Taken from course website
+    def make2dList(self, rows, cols):
+        return [ ([0] * cols) for row in range(rows) ]
+
+    # Taken from Prof Kosbie's optional advanced lecture on Gauss elim
+    # https://d1b10bmlvqabco.cloudfront.net/paste/h16fq7h26zh16l/d7570232b4842f99f11e3e989c5b7b0136d10b1bf0f4b9de6e1e98e5c6898f2d/yikesyikes.py 
+    def multiplyMatrix(self, M1, M2):
+        # M3 = M1 * M2
+        r1, c1 = len(M1), len(M1[0]) # gives you rows x cols
+        r2, c2 = len(M2), len(M2[0])
+        assert(c1 == r2)
+        r3 = r1
+        c3 = c2
+        M3 = self.make2dList(r3, c3)
+        for r in range(r1):
+            for c in range(c2):
+                # set M3[r][c] to the dot product of
+                # row r in M1 and col c in M2
+                for i in range(c1):
+                    M3[r][c] += M1[r][i] * M2[i][c]
+        return M3
+
+class xbox(fighter):
+    def __init__(self, startX, controller, color):
+        super().__init__(startX, color)
+        try:
+            self.controller = X_input.sampleJoystick(controller)
+        except Exception:
+            self.controller = None
 
 
 class body(object):
@@ -439,20 +500,3 @@ class body(object):
     pass
 
 
-# Taken from Prof Kosbie's optional advanced lecture on Gauss elim
-# https://d1b10bmlvqabco.cloudfront.net/paste/h16fq7h26zh16l/d7570232b4842f99f11e3e989c5b7b0136d10b1bf0f4b9de6e1e98e5c6898f2d/yikesyikes.py 
-def multiplyMatrix(M1, M2):
-    # M3 = M1 * M2
-    r1, c1 = len(M1), len(M1[0]) # gives you rows x cols
-    r2, c2 = len(M2), len(M2[0])
-    assert(c1 == r2)
-    r3 = r1
-    c3 = c2
-    M3 = make2dList(r3, c3)
-    for r in range(r1):
-        for c in range(c2):
-            # set M3[r][c] to the dot product of
-            # row r in M1 and col c in M2
-            for i in range(c1):
-                M3[r][c] += M1[r][i] * M2[i][c]
-    return M3
