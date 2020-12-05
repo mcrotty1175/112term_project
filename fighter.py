@@ -21,7 +21,7 @@ class fighter(object):
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.nextState = 'strongPunch1'",                                  # B - Strong Punch
         15: "self.nextState = 'fastKick1'",                                     # X - Fast Kick
-        16: "self.nextState = 'strongKick1'",                                   # Y - Strong Kick
+        16: "pass",                                                             # Y - Strong Kick (self.nextState = 'strongKick1')
         'left_trigger': "pass",                                                 # Left Trigger Press
         'right_trigger': "pass",                                                # Right Trigger Press
         'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
@@ -49,9 +49,10 @@ class fighter(object):
         self.opponent = None
         self.combo = False
         self.possibleCombos = {
-            "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
-            "heavyCombo":[2, 4, 14, 16],
-            "quickCombo":[13, 13, 14]
+            # "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
+            # "heavyCombo":[2, 4, 14, 16],
+            "quickCombo":[13, 13, 14],
+            "testCombo":[13, 14, 15, 16]
         }
         self.states = {
             "idleStates":["idle1"],
@@ -61,6 +62,7 @@ class fighter(object):
             "strongKickStates":["strongKick1", "strongKick2", "strongKick3",
                                 "strongKick4", "strongKick5", "strongKick6"],
             "crouchStates":["crouch"]
+            "quickCombo":[]
         }
     
     # Static Methods
@@ -90,18 +92,19 @@ class fighter(object):
     
     def checkCombos(self):
         for combo in self.possibleCombos:
-            potential = self.buttonLog.findCombos(combo)
+            potential = self.buttonLog.findCombos(self.possibleCombos[combo])
             if potential != None:
                 self.combo = potential
-                print(self.combo)
+                self.buttonLog.clear()
                 break
-        self.combo = None
 
 
     def getNextState(self): # Figures out what to draw next
         if self.currentState == "gameOver": return "gameOver"
         elif self.combo != None:
-            return self.combo
+            print(self.combo)
+            self.combo = None
+            return "idle1"
         else: 
             try:
                 for key in self.states:
@@ -181,8 +184,8 @@ class fighter(object):
             self.nextState = "gameOver"
             self.opponent.nextState = "gameOver"
 
-    def gameOver(self):
-        print("Game Over")
+    def gameOver(self): # Only here to make abide by the other rules
+        pass
 
     def fastPunch1(self): # First frame of fast 
         if self.opponent.body.center < self.body.center:
@@ -321,11 +324,13 @@ class fighter(object):
                     self.buttonLog.join(data[0][1])
                     self.move()
                 if data[1] != None:
-                    # self.buttonLog.join((data[1][0], data[1][1]))
-                    # self.move()
                     self.analogStick(data[1])
                     
-                
+def AI(fighter):
+    def getInput(self):
+        pass
+
+
 class body(object):
     THW = 10                                                                    # TORSO_HALF_WIDTH
     THH = 25                                                                    # TORSO_HALF_HEIGHT
