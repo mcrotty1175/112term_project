@@ -10,8 +10,8 @@ class fighter(object):
     controls = {
         1: "self.health += 5",                                                  # Dpad Up
         2: "self.health -= 5",                                                  # Dpad Down
-        3: "self.size -= 10",                                                   # Dpad Left
-        4: "self.size += 10",                                                   # Dpad Right
+        3: "self.opponent.health -= 10",                                        # Dpad Left
+        4: "self.opponent.health += 10",                                        # Dpad Right
         5: "pass",                                                              # Menu
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
@@ -27,7 +27,7 @@ class fighter(object):
         'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
         'l_thumb_y': "self.jump()",                                             # Left Stick Y Positive 
         'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
-        'r_thumb_y': "pass",                                                    # Right Stick Y Positive
+        'r_thumb_y': "self.nextState = 'crouch'",                               # Right Stick Y Positive
         None:"pass"
     }
 
@@ -75,7 +75,6 @@ class fighter(object):
             #     command = player.buttonLog.getLastElement()
             #     player.nextState = player.getNextState(command)
             # else:
-            if player.currentState != "idle1": print(repr(player.currentState))
             exec(f"player.{player.currentState}()")
             player.currentState = player.nextState
             player.nextState = player.getNextState()
@@ -108,8 +107,9 @@ class fighter(object):
         x1, y1 = self.opponent.getPos()
         return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
 
-    def duck(self):
-        self.crouch = True
+    def crouch(self):
+        self.body.moveLimb("leftLeg", 150, 270)
+        self.body.moveLimb("rightLeg", 30, 270)
 
     def idle1(self): # Default Idle Position
         # Head
@@ -179,7 +179,6 @@ class fighter(object):
             else:
                 self.body.moveLimb("rightArm", -30, 30)
 
-
     def strongPunch2(self):
         if self.opponent == None:
             self.body.moveLimb("rightArm", 180, 90)
@@ -216,8 +215,6 @@ class fighter(object):
     def strongKick4(self): print("hi4")
     def strongKick5(self): print("hi5")
     def strongKick6(self): print("hi6")
-
-
 
     def jump(self):
         if self.canJump:
