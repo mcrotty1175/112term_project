@@ -4,9 +4,12 @@ import math
 
 class fighter(object): 
     _registry = []
+    screenWidth = 600
+    screenHeight = 400
     GRAVITY = -0.5
-    FLOOR = 300
+    FLOOR = 0
     startingHealth = 200
+    gameOver = False
     controls = {
         1: "self.health += 5",                                                  # Dpad Up
         2: "self.health -= 5",                                                  # Dpad Down
@@ -48,8 +51,8 @@ class fighter(object):
         self.nextState = "idle1"
         self.opponent = None
         self.combo = False
-        self.possibleCombos = {
-            # "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
+        self.comboList = {
+            "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
             # "heavyCombo":[2, 4, 14, 16],
             "quickCombo":[13, 13, 14],
             "testCombo":[13, 14, 15, 16]
@@ -61,7 +64,7 @@ class fighter(object):
             "fastKickStages":["fastKick1", "fastKick2","fastKick3", "fastKick4"],
             "strongKickStates":["strongKick1", "strongKick2", "strongKick3",
                                 "strongKick4", "strongKick5", "strongKick6"],
-            "crouchStates":["crouch"]
+            "crouchStates":["crouch"],
             "quickCombo":[]
         }
     
@@ -74,6 +77,11 @@ class fighter(object):
             elif player.body.center[1] + player.body.getHeight() >= fighter.FLOOR:
                 player.body.moveBody(0, player.getOptimalHeightDelta())
                 player.canJump = True
+            while player.roomBehind() < body.THW:
+                if player.opponent.body.center < player.body.center:
+                    player.body.moveBody(-1 * body.THW, 0)
+                else:
+                    player.body.moveBody(body.THW, 0)     
         pass
 
     @staticmethod
@@ -91,20 +99,19 @@ class fighter(object):
         return  actualHeight - optimalHeight
     
     def checkCombos(self):
-        for combo in self.possibleCombos:
-            potential = self.buttonLog.findCombos(self.possibleCombos[combo])
-            if potential != None:
-                self.combo = potential
+        for combo in self.comboList:
+            if self.buttonLog.findCombos(self.comboList[combo]) != None:
+                self.combo = combo
                 self.buttonLog.clear()
                 break
-
 
     def getNextState(self): # Figures out what to draw next
         if self.currentState == "gameOver": return "gameOver"
         elif self.combo != None:
-            print(self.combo)
+            comboName = self.combo
             self.combo = None
-            return "idle1"
+            print(comboName)
+            return "idle1" # f"{comboName}1"
         else: 
             try:
                 for key in self.states:
@@ -126,6 +133,13 @@ class fighter(object):
 
     def distance(self, x0, y0, x1, y1):
         return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
+
+    def roomBehind(self):
+        if self.opponent.body.center < self.body.center:
+            return self.distance(self.body.center[0], 0, fighter.screenWidth, 0)
+        else:
+            return self.distance(self.body.center[0], 0, 0, 0)
+        
 
     def playerDistance(self): # Gets the distance between the players
         x0, y0 = self.getPos()
@@ -325,10 +339,21 @@ class fighter(object):
                     self.move()
                 if data[1] != None:
                     self.analogStick(data[1])
-                    
-def AI(fighter):
-    def getInput(self):
-        pass
+'''                   
+class AI(fighter):
+    def __init__(self, startX, color):
+        super().__init__(startX, None, color)
+
+    def getInput(self, app):
+        playerIsFar = self.playerDistance() / app.width
+        playerIsNear = 1 - playerIsFar
+        healthDifference = self.health - self.opponent.health
+        playerNextMove = self.opponent.nextState
+        distanceBehindOther = 
+        distanceBehindMe = 
+        comboPotential = self.getComboPotential()
+        canJump = self.canJump
+'''
 
 
 class body(object):
@@ -412,3 +437,22 @@ class body(object):
         pass
     
     pass
+
+
+# Taken from Prof Kosbie's optional advanced lecture on Gauss elim
+# https://d1b10bmlvqabco.cloudfront.net/paste/h16fq7h26zh16l/d7570232b4842f99f11e3e989c5b7b0136d10b1bf0f4b9de6e1e98e5c6898f2d/yikesyikes.py 
+def multiplyMatrix(M1, M2):
+    # M3 = M1 * M2
+    r1, c1 = len(M1), len(M1[0]) # gives you rows x cols
+    r2, c2 = len(M2), len(M2[0])
+    assert(c1 == r2)
+    r3 = r1
+    c3 = c2
+    M3 = make2dList(r3, c3)
+    for r in range(r1):
+        for c in range(c2):
+            # set M3[r][c] to the dot product of
+            # row r in M1 and col c in M2
+            for i in range(c1):
+                M3[r][c] += M1[r][i] * M2[i][c]
+    return M3
