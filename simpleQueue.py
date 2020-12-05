@@ -28,6 +28,12 @@ class simpleQueue(object):
             result += elem
         return hash(result)
 
+    def __eq__(self, other):
+        for i in range(len(self.list)):
+            if self.list[i] != other[i]:
+                return False
+        return True
+
     def __str__(self):
         if self.list == []:
             return "[]"
@@ -48,6 +54,11 @@ class simpleQueue(object):
     def pop(self):
         return simpleQueue(self.max, self.list[1:])
     
+    def popFirst(self):
+        result = self.list[0]
+        self.list = self.pop
+        return result
+
     def join(self, elem):
         if len(self.list) < self.max:
             self.list.append(elem)
@@ -59,3 +70,12 @@ class simpleQueue(object):
     def getLastElement(self):
         if self.list != []:
             return self.list[-1]
+
+    def findCombos(self, combo):
+        if len(self.list) < 2:
+            return None
+        elif self.list == combo:
+            return self.list
+        else:
+            return self.pop().findCombos(combo)
+
