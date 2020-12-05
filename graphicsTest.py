@@ -3,8 +3,9 @@ from fighter import *
 
 def appStarted(app):
     app.background = app.loadImage("background1.jpg")
+    app.game = True
     app.count = 0
-    app.timerDelay = 100
+    app.timerDelay = 10
     fighter.GRAVITY = -0.25 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = fighter(app.width*(1/3), 0, "red")
@@ -20,8 +21,9 @@ def timerFired(app):
     app.count += 1
     fighter.applyGravity()
     for player in fighter._registry:
-        player.getControllerInput()
+        player.getInput()
     # if app.count % 66 > 0:
+
     fighter.updateFrames()
 
 def drawPlayers(app, canvas):
@@ -105,9 +107,15 @@ def drawBackground(app, canvas):
 def redrawAll(app, canvas):
     # if app.count % 66 > 0:
     #     return
-    app._canvas.delete(ALL)
-    drawBackground(app, canvas)
-    drawPlayers(app, canvas)
-    drawHealthBars(app, canvas)
+    if app.game:
+        app._canvas.delete(ALL)
+        drawBackground(app, canvas)
+        drawPlayers(app, canvas)
+        drawHealthBars(app, canvas)
+    elif app.player1.health > app.player2.health:
+        canvas.create_text(app.width/2, app.height/2, text="Player 1 Wins")
+    else:
+        canvas.create_text(app.width/2, app.height/2, text="Player 2 Wins")
+        
 
 runApp(width=600, height=400)

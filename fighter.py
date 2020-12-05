@@ -10,8 +10,8 @@ class fighter(object):
     controls = {
         1: "self.health += 5",                                                  # Dpad Up
         2: "self.health -= 5",                                                  # Dpad Down
-        3: "self.dealDamage('handL', 50)",                                        # Dpad Left
-        4: "self.dealDamage('handR', 50)",                                        # Dpad Right
+        3: "self.dealDamage('handL', 50)",                                      # Dpad Left
+        4: "self.dealDamage('handR', 50)",                                      # Dpad Right
         5: "pass",                                                              # Menu
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
@@ -21,7 +21,7 @@ class fighter(object):
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.nextState = 'strongPunch1'",                                  # B - Strong Punch
         15: "self.nextState = 'fastKick1'",                                     # X - Fast Kick
-        16: "self.nextState = 'strongKick1'",                                    # Y - Strong Kick
+        16: "self.nextState = 'strongKick1'",                                   # Y - Strong Kick
         'left_trigger': "pass",                                                 # Left Trigger Press
         'right_trigger': "pass",                                                # Right Trigger Press
         'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
@@ -42,12 +42,17 @@ class fighter(object):
             self.controller = X_input.sampleJoystick(controller)
         except Exception:
             self.controller = None
-        self.buttonLog = simpleQueue(5)
+        self.buttonLog = simpleQueue(10)
         self.frameTime = 0
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
         self.combo = False
+        self.possibleCombos = {
+            "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
+            "heavyCombo":[2, 4, 14, 16],
+            "quickCombo":[13, 13, 14]
+        }
         self.states = {
             "idleStates":["idle1"],
             "fastPunchStates":["fastPunch1", "fastPunch2", "fastPunch3"],
@@ -72,12 +77,9 @@ class fighter(object):
     @staticmethod
     def updateFrames(): # Tells redrawAll how to draw each fighter
         for player in fighter._registry:
-            # if player.getControllerInput():
-            #     command = player.buttonLog.getLastElement()
-            #     player.nextState = player.getNextState(command)
-            # else:
             exec(f"player.{player.currentState}()")
             player.currentState = player.nextState
+            player.checkCombos()
             player.nextState = player.getNextState()
 
     # Class Methods
@@ -86,9 +88,21 @@ class fighter(object):
         actualHeight = self.body.center[1]
         return  actualHeight - optimalHeight
     
+    def checkCombos(self):
+        for combo in self.possibleCombos:
+            potential = self.buttonLog.findCombos(combo)
+            if potential != None:
+                self.combo = potential
+                print(self.combo)
+                break
+        self.combo = None
+
+
     def getNextState(self): # Figures out what to draw next
-        if self.currentState == "gameOver": return
-        elif self.combo == None:
+        if self.currentState == "gameOver": return "gameOver"
+        elif self.combo != None:
+            return self.combo
+        else: 
             try:
                 for key in self.states:
                     if self.currentState in self.states[key]:
@@ -98,15 +112,14 @@ class fighter(object):
                 return "idle1"
             except IndexError:
                 return "idle1"
-        else: return "idle1"
             
     def move(self): # Applies the player's next movement
         command = self.buttonLog.getLastElement()
         if isinstance(command, int):
             exec(fighter.controls[command])
-        elif isinstance(command, tuple):
-            distance = command[1]
-            exec(fighter.controls[command[0]])
+        # elif isinstance(command, tuple):
+        #     distance = command[1]
+        #     exec(fighter.controls[command[0]])
 
     def distance(self, x0, y0, x1, y1):
         return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
@@ -127,10 +140,10 @@ class fighter(object):
         self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
         # Left Arm
         self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
-        self.body.moveLimb("leftArm", 225, 180)
+        self.body.moveLimb("leftArm", 225, 105)
         # Right Arm
         self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
-        self.body.moveLimb("rightArm", 315, 0)
+        self.body.moveLimb("rightArm", 315, 85)
         # Left Leg
         self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
         self.body.moveLimb("leftLeg", 240, 270)
@@ -157,24 +170,28 @@ class fighter(object):
     def dealDamage(self, appendage, baseDamage):
         x0, y0 = getattr(self.body, appendage)
         other = self.opponent.body
-        if ((other.hipL[0] < x0 < other.hipR[0]) and
-            (other.shoulderL[1] < y0 < other.hipR[1])):
+        if ((other.hipL[0] <= x0 <= other.hipR[0]) and
+            (other.shoulderL[1] <= y0 <= other.hipR[1])):
             self.opponent.health -= baseDamage
-            print("hello there")
         else:
             x1, y1 = other.head
             if self.distance(x0, y0, x1, y1) <= body.HR:
                 self.opponent.health -= 1.5 * baseDamage
-                print("hello there")
+        if self.opponent.health <= 0:
+            self.nextState = "gameOver"
+            self.opponent.nextState = "gameOver"
+
+    def gameOver(self):
+        print("Game Over")
 
     def fastPunch1(self): # First frame of fast 
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftArm", 210, 150)
-            self.dealDamage("handL", 50)
+            self.dealDamage("handL", 4)
             
         else:
             self.body.moveLimb("rightArm", -30, 30)
-            self.dealDamage("handH", 4)
+            self.dealDamage("handR", 4)
 
     def fastPunch2(self):
         if self.opponent.body.center < self.body.center:
@@ -182,35 +199,35 @@ class fighter(object):
             self.dealDamage("handL", 4)
         else:
             self.body.moveLimb("rightArm", 0, 0)
-            self.dealDamage("handH", 4)
+            self.dealDamage("handR", 4)
     
     def fastPunch3(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftArm", 195, 165)
         else:
             self.body.moveLimb("rightArm", -15, 15)
-            self.dealDamage("handH", 4)
+            self.dealDamage("handR", 4)
 
     def strongPunch1(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 225, 135)
-            self.dealDamage("handR", 6)
+            self.dealDamage("handR", 4)
         else:
             self.body.moveLimb("leftArm", 315, 45)
-            self.dealDamage("handL", 6)
+            self.dealDamage("handL", 4)
 
     def strongPunch2(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 180, 90)
-            self.dealDamage("handH", 4)
+            self.dealDamage("elbowR", 10)
         else:
             self.body.moveLimb("leftArm", 0, 90)
-            self.dealDamage("handL", 4)
+            self.dealDamage("elbowL", 10)
 
     def strongPunch3(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 135, 105)
-            self.dealDamage("handH", 4)
+            self.dealDamage("handR", 4)
         else:
             self.body.moveLimb("leftArm", 45, 85)
             self.dealDamage("handL", 4)
@@ -275,29 +292,43 @@ class fighter(object):
         else:
             self.body.moveLimb("leftLeg")
     '''
-    def jump(self, direction):
-        if direction < 0:
-            self.nextState = 'crouch'
-        elif self.canJump:
+    def jump(self):
+        if self.canJump:
             self.body.moveBody(0, self.body.getHeight())
             self.canJump = False
 
     def getPos(self):
         return (self.x, self.y)
- 
-    def getControllerInput(self):
+
+    def analogStick(self, intake):
+        control, data = intake
+        if control == 'left_trigger': pass
+        elif control == 'right_trigger': pass
+        elif control == 'l_thumb_x': 
+            self.body.moveBody(2 * data, 0)
+        elif control == 'l_thumb_y':
+            if data >= 0: self.jump()
+            else: self.nextState = "crouch"
+        elif control == 'r_thumb_x':
+            self.body.moveBody(5 * data, 0)
+        elif control == 'r_thumb_y': pass
+
+    def getInput(self):
         if self.controller != None:
             data = next(self.controller)
             if data != None:
                 if data[0] != None and data[0][2] == 1:
                     self.buttonLog.join(data[0][1])
-                elif data[1] != None:
-                    self.buttonLog.join((data[1][0], data[1][1]))
-                self.move()
-
+                    self.move()
+                if data[1] != None:
+                    # self.buttonLog.join((data[1][0], data[1][1]))
+                    # self.move()
+                    self.analogStick(data[1])
+                    
+                
 class body(object):
     THW = 10                                                                    # TORSO_HALF_WIDTH
-    THH = 20                                                                    # TORSO_HALF_HEIGHT
+    THH = 25                                                                    # TORSO_HALF_HEIGHT
     HR = 20                                                                     # HEAD_RADIUS
     AL = 30                                                                     # ARM_LENGTH
     LL = 30                                                                     # LEG_LENGTH
