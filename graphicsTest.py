@@ -3,10 +3,11 @@ from fighter import *
 
 def appStarted(app):
     app.background = app.loadImage("background1.jpg")
+    app.background = ImageTk.PhotoImage(app.background)
     app.game = True
     app.count = 0
-    app.timerDelay = 10
-    fighter.GRAVITY = -0.25 * app.timerDelay
+    app.timerDelay = 1
+    fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = fighter(app.width*(1/3), 0, "red")
     try:
@@ -22,25 +23,18 @@ def timerFired(app):
     fighter.applyGravity()
     for player in fighter._registry:
         player.getInput()
-    # if app.count % 66 > 0:
+    if app.count % 66 == 0:
+        fighter.updateFrames()
 
-    fighter.updateFrames()
+def check4Winner(app):
+    if app.player1.health <= 0:
+        app.game = False
+    elif app.player2.health <= 0:
+        app.game = False
 
 def drawPlayers(app, canvas):
     for player in fighter._registry:
         color = player.color
-
-        # Draw the Torso
-        x,y = player.body.center
-        w = body.THW
-        h = body.THH
-        canvas.create_rectangle(x-w, y-h, x+w, y+h, fill=color, width=0)
-
-        # Draw the Head
-        x,y = player.body.head
-        r = body.HR
-        canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, width=0)
-
         # Draw Left Arm
         leftShoulderX, leftShoulderY = player.body.shoulderL
         leftElbowX, leftElbowY = player.body.elbowL
@@ -85,6 +79,17 @@ def drawPlayers(app, canvas):
                         rightHandX, rightFootY,
                         fill=color, width=app.limbWidth)
 
+        # Draw the Torso
+        # Done like this to allow for better animations in future
+        canvas.create_polygon(player.body.shoulderL, player.body.shoulderR, 
+                              player.body.hipR, player.body.hipL, 
+                              fill=color, width=0)
+
+        # Draw the Head
+        x,y = player.body.head
+        r = body.HR
+        canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, width=0)
+
 def healthColor(player):
     healthPercent = player.health / fighter.startingHealth
     if healthPercent < 0.2: return "red"
@@ -95,18 +100,16 @@ def healthColor(player):
 def drawHealthBars(app, canvas):
     canvas.create_rectangle(0, 10, app.player1.health, 30,
                             fill=healthColor(app.player1))
-    try:
-        canvas.create_rectangle(app.width - app.player2.health, 10,
+    canvas.create_rectangle(app.width - app.player2.health, 10,
                             app.width, 30, fill=healthColor(app.player2))
-    except Exception: pass
 
 def drawBackground(app, canvas):
     canvas.create_image(app.width/2, app.height/2,
-                        image=ImageTk.PhotoImage(app.background))
+                        image=app.background)
 
 def redrawAll(app, canvas):
-    # if app.count % 66 > 0:
-    #     return
+    if app.count % 66 > 0:
+        return
     if app.game:
         app._canvas.delete(ALL)
         drawBackground(app, canvas)

@@ -71,6 +71,9 @@ class simpleQueue(object):
         if self.list != []:
             return self.list[-1]
 
+    def clear(self):
+        self.list = []
+
     def findCombos(self, combo):
         if len(self.list) < 2:
             return None
