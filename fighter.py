@@ -246,20 +246,32 @@ class fighter(object):
     def fastKick1(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftLeg", 215, 240)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
         else:
             self.body.moveLimb("rightLeg", 320, 300)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
 
     def fastKick2(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftLeg", 200, 225)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
         else:
             self.body.moveLimb("rightLeg", 340, 315)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
     
     def fastKick3(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftLeg", 180, 180)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
         else:
             self.body.moveLimb("rightLeg", 0, 0)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
     
     def fastKick4(self):
         if self.opponent.body.center < self.body.center:
@@ -403,23 +415,10 @@ class AI(fighter):
             6:"self.analogStick(('l_thumb_x', -0.5))",
             7:"self.analogStick(('l_thumb_y', -0.5))",
         }
-        print(str(random.seed))
-        self.weights1 = [[random.randint(0,9),
-                          random.randint(0,9),
-                          random.randint(0,9),
-                          random.randint(0,9),
-                          random.randint(0,9),
-                          random.randint(0,9),
-                          random.randint(0,9)]]
-        self.weights2 = [[random.randint(0,9)],
-                         [random.randint(0,9)],
-                         [random.randint(0,9)],
-                         [random.randint(0,9)],
-                         [random.randint(0,9)],
-                         [random.randint(0,9)],
-                         [random.randint(0,9)]]
+        random.seed(16532) # Actually somewhat decent
+        self.weights1 = [[9, 9, 4, 1, 3, 4, 8]]
+        self.weights2 = [[5], [1], [3], [1], [1], [7], [4]]
         self.links = self.multiplyMatrix(self.weights2, self.weights1)
-        # self.links = self.multiplyMatrix(temp, self.weights2)
 
     def getInput(self):
         inputs = self.getInputsHelper()
