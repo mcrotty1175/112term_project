@@ -11,10 +11,8 @@ def appStarted(app):
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = xbox(app.width*(1/3), 0, "red")
-    # try:
-    #     app.player2 = xbox(app.width*(2/3), 1, "blue")
-    # except IndexError:
-    app.player2 = AI(app.width*(2/3), "blue")
+    app.player2 = xbox(app.width*(2/3), 1, "blue")
+    # app.player2 = AI(app.width*(2/3), "blue")
     app.player1.opponent = app.player2
     app.player2.opponent = app.player1
     app.limbWidth = body.LW
@@ -31,10 +29,10 @@ def timerFired(app):
 
 def check4Winner(app):
     if app.player1.health <= 0:
-        app.winner = "Player 1"
+        app.winner = "Player 2"
         app.game = False
     elif app.player2.health <= 0:
-        app.winner = "Player 2"
+        app.winner = "Player 1"
         app.game = False
 
 def drawPlayers(app, canvas):

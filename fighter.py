@@ -1,6 +1,6 @@
 from simpleQueue import simpleQueue
 import X_input
-import math, random
+import math, random, time
 
 class fighter(object): 
     _registry = []
@@ -11,31 +11,31 @@ class fighter(object):
     startingHealth = 200
     gameOver = False
     controls = {
-        1: "self.health += 5",                                                  # Dpad Up
-        2: "self.health -= 5",                                                  # Dpad Down
-        3: "self.dealDamage('handL', 50)",                                      # Dpad Left
-        4: "self.dealDamage('handR', 50)",                                      # Dpad Right
+        1: "pass",                                                  # Dpad Up
+        2: "pass",                                                  # Dpad Down
+        3: "pass",                                      # Dpad Left
+        4: "pass",                                      # Dpad Right
         5: "pass",                                                              # Menu
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
         8: "pass",                                                              # R_Stick
-        9: "self.color = 'green'",                                              # Left Bumper
-        10: "self.color = 'pink'",                                              # Right Bumper
+        9: "pass",                                              # Left Bumper
+        10: "pass",                                              # Right Bumper
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.nextState = 'strongPunch1'",                                  # B - Strong Punch
         15: "self.nextState = 'fastKick1'",                                     # X - Fast Kick
         16: "pass",                                                             # Y - Strong Kick (self.nextState = 'strongKick1')
-        'left_trigger': "pass",                                                 # Left Trigger Press
-        'right_trigger': "pass",                                                # Right Trigger Press
-        'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
-        'l_thumb_y': "self.jump(distance)",                                     # Left Stick Y Positive 
-        'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
-        'r_thumb_y': "self.nextState = 'crouch'",                               # Right Stick Y Positive
+        # 'left_trigger': "pass",                                                 # Left Trigger Press
+        # 'right_trigger': "pass",                                                # Right Trigger Press
+        # 'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
+        # 'l_thumb_y': "self.jump(distance)",                                     # Left Stick Y Positive 
+        # 'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
+        # 'r_thumb_y': "self.nextState = 'crouch'",                               # Right Stick Y Positive
         None:"pass"
     }
 
     # Magic Methods
-    def __init__(self, startX, controller, color="red"):
+    def __init__(self, startX, color):
         fighter._registry.append(self)
         self.color = color
         self.x = startX
@@ -46,7 +46,7 @@ class fighter(object):
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
-        self.combo = False
+        self.combo = None
         self.comboList = {
             "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
             # "heavyCombo":[2, 4, 14, 16],
@@ -61,7 +61,8 @@ class fighter(object):
             "strongKickStates":["strongKick1", "strongKick2", "strongKick3",
                                 "strongKick4", "strongKick5", "strongKick6"],
             "crouchStates":["crouch"],
-            "quickCombo":[]
+            "quickCombo":["quickCombo1", "quickCombo2", "quickCombo3", "quickCombo4"
+                            , "quickCombo5", "quickCombo6", "quickCombo7"]
         }
     
     # Static Methods
@@ -106,8 +107,7 @@ class fighter(object):
         elif self.combo != None:
             comboName = self.combo
             self.combo = None
-            print(comboName)
-            return "idle1" # f"{comboName}1"
+            return f"{comboName}1"
         else: 
             try:
                 for key in self.states:
@@ -136,7 +136,6 @@ class fighter(object):
         else:
             return self.distance(self.body.center[0], 0, 0, 0)
         
-
     def playerDistance(self): # Gets the distance between the players
         x0, y0 = self.getPos()
         x1, y1 = self.opponent.getPos()
@@ -305,6 +304,62 @@ class fighter(object):
         else:
             self.body.moveLimb("leftLeg")
     '''
+    def quickCombo1(self):
+        self.body.moveLimb("leftArm", 225, 105)
+        self.body.moveLimb("rightArm", 315, 85)
+    
+    def quickCombo2(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 90, 330)
+        else:
+            self.body.moveLimb("leftArm", 90, 210)
+
+    def quickCombo3(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 135, 90)
+            self.dealDamage("elbowR", 8)
+        else:
+            self.body.moveLimb("leftArm", 45, 90)
+            self.dealDamage("elbowL", 8)
+
+    def quickCombo4(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 160, 90)
+            self.dealDamage("elbowR", 8)
+        else:
+            self.body.moveLimb("leftArm", 20, 90)
+            self.dealDamage("elbowL", 8)
+
+    def quickCombo5(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 180, 135)
+            self.dealDamage("elbowR", 8)
+            self.dealDamage("handR", 7)
+        else:
+            self.body.moveLimb("leftArm", 0, 45)
+            self.dealDamage("elbowL", 8)
+            self.dealDamage("handL", 7) 
+
+    def quickCombo6(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 180, 180)
+            self.dealDamage("elbowR", 8)
+            self.dealDamage("handR", 10)
+        else:
+            self.body.moveLimb("leftArm", 0, 0)
+            self.dealDamage("elbowL", 8)     
+            self.dealDamage("handL", 7) 
+  
+
+    def quickCombo7(self):
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("rightArm", 180, 135)
+        else:
+            self.body.moveLimb("leftArm", 0, 45)
+
+    def cheat1(self):
+        self.opponent.health = 0
+
     def jump(self):
         if self.canJump:
             self.body.moveBody(0, self.body.getHeight())
@@ -340,51 +395,61 @@ class AI(fighter):
     def __init__(self, startX, color):
         super().__init__(startX, 0, color)
         self.outputs = {
-            0:"self.buttonLog.join(13)",
-            1:"self.buttonLog.join(14)",
-            2:"self.buttonLog.join(15)",
-            3:"self.buttonLog.join(16)",
+            0:"self.buttonLog.join(13)\nself.move()",
+            1:"self.buttonLog.join(14)\nself.move()",
+            2:"self.buttonLog.join(15)\nself.move()",
+            3:"self.buttonLog.join(16)\nself.move()",
             4:"self.analogStick(('l_thumb_x', 0.5))",
-            5:"self.analogStick(('r_thumb_y', 0.5))",
+            5:"self.analogStick(('l_thumb_y', 0.5))",
             6:"self.analogStick(('l_thumb_x', -0.5))",
-            7:"self.analogStick(('r_thumb_y', -0.5))"
+            7:"self.analogStick(('l_thumb_y', -0.5))"
         }
-        self.weights1 = [[0.2, 0.3, 0.2, 0.2, 0.2, 0.2, 0.2]]
-        self.weights2 = [[0.4],
-                         [0.5],
-                         [0.3],
-                         [0.2],
-                         [0.1],
-                         [0.5],
-                         [0.4]]
-        self.links = self.multiplyMatrix(self.weights1, self.weights2)
+        self.weights1 = [[random.randint(0,9),
+                          random.randint(0,9),
+                          random.randint(0,9),
+                          random.randint(0,9),
+                          random.randint(0,9),
+                          random.randint(0,9),
+                          random.randint(0,9)]]
+        self.weights2 = [[random.randint(0,9)],
+                         [random.randint(0,9)],
+                         [random.randint(0,9)],
+                         [random.randint(0,9)],
+                         [random.randint(0,9)],
+                         [random.randint(0,9)],
+                         [random.randint(0,9)]]
+        self.links = self.multiplyMatrix(self.weights2, self.weights1)
+        # self.links = self.multiplyMatrix(temp, self.weights2)
+        print(self.links)
 
     def getInput(self):
         inputs = self.getInputsHelper()
         output = self.multiplyMatrix(inputs, self.links)
-        flattened = [ i[0] for i in output]
-        command = flattened.index(max(flattened))
+        output = output[0]
+        command = output.index(max(output))
+        # print(self.outputs[command])
         exec(self.outputs[command])
+        time.sleep(0.01)
         
 
     def getInputsHelper(self):        
         playerIsFar = self.playerDistance() / fighter.screenWidth
         playerIsNear = 1 - playerIsFar
-        healthDifference = (self.health - self.opponent.health) / fighter.startingHealth
+        healthDifference = (self.health - self.opponent.health)/self.health
         distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
         distanceBehindMe = self.roomBehind() / fighter.screenWidth
         comboPotential = self.getComboPotential()
         canJump = 1 if self.canJump else 0
-        return [[playerIsFar],
-                [playerIsNear],
-                [healthDifference],
-                [distanceBehindMe],
-                [distanceBehindOther],
-                [comboPotential],
-                [canJump]]
+        return [[playerIsFar,
+                 playerIsNear,
+                 healthDifference,
+                 distanceBehindMe,
+                 distanceBehindOther,
+                 comboPotential,
+                 canJump]]
 
     def getComboPotential(self):
-        return random.random()
+        return random.randint(0,9)
 
     # Taken from course website
     def make2dList(self, rows, cols):

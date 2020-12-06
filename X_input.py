@@ -282,13 +282,13 @@ def sampleJoystick(inputIndex):
     joysticks = XInputJoystick.enumerate_devices()
     device_numbers = list(map(attrgetter('device_number'), joysticks))
 
-    print('found %d devices: %s' % (len(joysticks), device_numbers))
+    # print('found %d devices: %s' % (len(joysticks), device_numbers))
 
     if not joysticks:
         sys.exit(0)
 
     j = joysticks[inputIndex]
-    print('using %d' % j.device_number)
+    # print('using %d' % j.device_number)
 
     buttonMap = {
             1: "Up",
