@@ -51,7 +51,6 @@ class fighter(object):
             "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
             # "heavyCombo":[2, 4, 14, 16],
             "quickCombo":[13, 13, 14],
-            "testCombo":[13, 14, 15, 16]
         }
         self.states = {
             "idleStates":["idle1"],
@@ -267,7 +266,7 @@ class fighter(object):
             self.body.moveLimb("leftLeg", 200, 200)
         else:
             self.body.moveLimb("rightLeg", 340, 340)
-    '''    
+    '''    # SAVING to do Post TP2 deadline for better animation
     def strongKick1(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("leftLeg")
@@ -393,7 +392,7 @@ class fighter(object):
                    
 class AI(fighter):
     def __init__(self, startX, color):
-        super().__init__(startX, 0, color)
+        super().__init__(startX, color)
         self.outputs = {
             0:"self.buttonLog.join(13)\nself.move()",
             1:"self.buttonLog.join(14)\nself.move()",
@@ -402,8 +401,9 @@ class AI(fighter):
             4:"self.analogStick(('l_thumb_x', 0.5))",
             5:"self.analogStick(('l_thumb_y', 0.5))",
             6:"self.analogStick(('l_thumb_x', -0.5))",
-            7:"self.analogStick(('l_thumb_y', -0.5))"
+            7:"self.analogStick(('l_thumb_y', -0.5))",
         }
+        print(str(random.seed))
         self.weights1 = [[random.randint(0,9),
                           random.randint(0,9),
                           random.randint(0,9),
@@ -420,7 +420,6 @@ class AI(fighter):
                          [random.randint(0,9)]]
         self.links = self.multiplyMatrix(self.weights2, self.weights1)
         # self.links = self.multiplyMatrix(temp, self.weights2)
-        print(self.links)
 
     def getInput(self):
         inputs = self.getInputsHelper()
@@ -428,14 +427,12 @@ class AI(fighter):
         output = output[0]
         command = output.index(max(output))
         # print(self.outputs[command])
-        exec(self.outputs[command])
-        time.sleep(0.01)
-        
+        exec(self.outputs[random.randint(0, command)])        
 
     def getInputsHelper(self):        
         playerIsFar = self.playerDistance() / fighter.screenWidth
         playerIsNear = 1 - playerIsFar
-        healthDifference = (self.health - self.opponent.health)/self.health
+        healthDifference = (self.health - self.opponent.health)/(self.health+1)
         distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
         distanceBehindMe = self.roomBehind() / fighter.screenWidth
         comboPotential = self.getComboPotential()

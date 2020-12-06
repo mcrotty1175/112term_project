@@ -11,8 +11,8 @@ def appStarted(app):
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = xbox(app.width*(1/3), 0, "red")
-    app.player2 = xbox(app.width*(2/3), 1, "blue")
-    # app.player2 = AI(app.width*(2/3), "blue")
+    # app.player2 = xbox(app.width*(2/3), 1, "blue")
+    app.player2 = AI(app.width*(2/3), "blue")
     app.player1.opponent = app.player2
     app.player2.opponent = app.player1
     app.limbWidth = body.LW
@@ -21,9 +21,9 @@ def appStarted(app):
 def timerFired(app):
     app.count += 1
     fighter.applyGravity()
-    for player in fighter._registry:
-        player.getInput()
+    app.player1.getInput()
     if app.count % 66 == 0:
+        app.player2.getInput()
         fighter.updateFrames()
         check4Winner(app)
 
@@ -122,5 +122,4 @@ def redrawAll(app, canvas):
         canvas.create_text(app.width/2, app.height/2, text=f"{app.winner} Wins!",
                             font="ariel 36 bold",fill="white")
         
-
 runApp(width=fighter.screenWidth, height=400)
