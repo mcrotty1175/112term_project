@@ -43,6 +43,7 @@ class fighter(object):
         self.health = fighter.startingHealth
         self.buttonLog = simpleQueue(10)
         self.frameTime = 0
+        self.currentState = "idel1"
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
@@ -84,6 +85,7 @@ class fighter(object):
     def updateFrames(): # Tells redrawAll how to draw each fighter
         for player in fighter._registry:
             exec(f"player.{player.currentState}()")
+            player.lastState = player.currentState
             player.currentState = player.nextState
             player.checkCombos()
             player.nextState = player.getNextState()
@@ -361,7 +363,6 @@ class fighter(object):
             self.dealDamage("elbowL", 8)     
             self.dealDamage("handL", 7) 
   
-
     def quickCombo7(self):
         if self.opponent.body.center < self.body.center:
             self.body.moveLimb("rightArm", 180, 135)
@@ -384,7 +385,7 @@ class fighter(object):
         if control == 'left_trigger': pass
         elif control == 'right_trigger': pass
         elif control == 'l_thumb_x': 
-            self.body.moveBody(2 * data, 0)
+            self.body.moveBody(5 * data, 0)
         elif control == 'l_thumb_y':
             if data >= 0: self.jump()
             else: self.nextState = "crouch"
@@ -393,59 +394,146 @@ class fighter(object):
         elif control == 'r_thumb_y': pass
 
     def getInput(self):
-        if self.controller != None:
-            data = next(self.controller)
-            if data != None:
-                if data[0] != None and data[0][2] == 1:
-                    self.buttonLog.join(data[0][1])
-                    self.move()
-                if data[1] != None:
-                    self.analogStick(data[1])
+        pass
+
                    
 class AI(fighter):
     def __init__(self, startX, color):
         super().__init__(startX, color)
         self.outputs = {
-            0:"self.buttonLog.join(13)\nself.move()",
-            1:"self.buttonLog.join(14)\nself.move()",
-            2:"self.buttonLog.join(15)\nself.move()",
-            3:"self.buttonLog.join(16)\nself.move()",
-            4:"self.analogStick(('l_thumb_x', 0.5))",
+            0:"self.buttonLog.join(13)",
+            1:"self.buttonLog.join(14)",
+            2:"self.buttonLog.join(15)",
+            3:"self.buttonLog.join(16)",
+            4:"self.analogStick(('l_thumb_x', 1))",
             5:"self.analogStick(('l_thumb_y', 0.5))",
-            6:"self.analogStick(('l_thumb_x', -0.5))",
+            6:"self.analogStick(('l_thumb_x', -1))",
             7:"self.analogStick(('l_thumb_y', -0.5))",
+            8:"pass"
         }
-        random.seed(16532) # Actually somewhat decent
-        self.weights1 = [[9, 9, 4, 1, 3, 4, 8]]
-        self.weights2 = [[5], [1], [3], [1], [1], [7], [4]]
+        
+        self.weights1 = [[random.random(),
+                          random.random(),
+                          random.random(),
+                          random.random(),
+                          random.random(),
+                          random.random(),
+                          random.random(),
+                          random.random()]]
+        self.weights2 = [   [random.random()], [random.random()],
+                            [random.random()], [random.random()],
+                            [random.random()], [random.random()],
+                            [random.random()], [random.random()],
+                            [random.random()], [random.random()]    ]
+        print(self.weights1)
+        print(self.weights2)
         self.links = self.multiplyMatrix(self.weights2, self.weights1)
+    
+    """
+    # Michael being STOOPID trying to use a NN
+    def getInput(self):
+        if self.currentState == "idle1":
+            inputs = self.getInputsHelper()
+            output = self.multiplyMatrix(inputs, self.links)
+            output = output[0]
+            command = output.index(max(output))
+            # print(self.outputs[command])
+            exec(self.outputs[command])        
+    """
 
     def getInput(self):
-        inputs = self.getInputsHelper()
-        output = self.multiplyMatrix(inputs, self.links)
-        output = output[0]
-        command = output.index(max(output))
-        # print(self.outputs[command])
-        exec(self.outputs[random.randint(0, command)])        
+        # Calulate the odds of moving
+        far, near, healthMe, healthOther, distanceMe, distanceOther, combo, jump = self.getInputsHelper()
+        jumpThreshold = crouchOdds = moveLeftOdds = moveRightOdds = 0
+        stillOdds = 3
+
+        # +1: Enemy on Right Side
+        # -1: Enemy on Left Side
+        enemySide = 1 if self.body.center[0] < self.opponent.body.center[0] else -1
+        
+        movementOdds = [8] * stillOdds
+        # Check for the ability to Jump
+        if jump == 1: 
+            jumpThreshold += .25
+        else:
+            jumpThreshold = -999999
+        
+        # Determine Advantage
+        if healthMe > healthOther: # Stall if winning
+            moveRightOdds += 8 if enemySide == 1 else enemySide * 8
+            moveLeftOdds -= 3 if enemySide == 1 else enemySide * 3
+        else: # Be aggresive if losing
+            moveRightOdds -= 3 if enemySide == 1 else enemySide * 3
+            moveLeftOdds += 8 if enemySide == 1 else enemySide * 8
+
+        # Keep the AI from just running away
+        if far <= near: 
+            moveLeftOdds += 5 if enemySide == -1 else 0
+            moveRightOdds += 5 if enemySide == 1 else 0
+        else:
+            moveLeftOdds += random.randint(1, 3) if enemySide == -1 else 0
+            moveRightOdds += random.randint(1, 3) if enemySide == 1 else 0
+            jumpThreshold += 0.5
+
+        # Stay keep from being backed into a corner
+        if distanceMe < distanceOther:
+            moveLeftOdds += 2 if enemySide == -1 else 0
+            moveRightOdds += 2 if enemySide == 1 else 0
+            jumpThreshold += 0.5
+        
+        if jumpThreshold >= 1.0:
+            self.analogStick(('l_thumb_y', 1))
+        else:
+            if random.random() > .85:
+                self.analogStick(('l_thumb_y', -1))
+
+        movementOdds.extend([4] * max(0, moveRightOdds))
+        movementOdds.extend([6] * max(0, moveRightOdds))
+        random.shuffle(movementOdds)
+        exec(self.outputs[random.choice(movementOdds)])
+
+        if self.currentState in ["idle1", "idle2"]: # Filter to prevent spamming
+            aOdds = bOdds = xOdds = yOdds = 1
+            attackOdds = [8] * stillOdds
+            distance = self.playerDistance()
+            if distance <= 30:
+                aOdds += 3
+                bOdds += 5
+                xOdds += 1
+            elif distance <= 60:
+                aOdds += 6
+                bOdds += 1
+                xOdds += 2
+
+            if self.buttonLog.list[-2:0] == [13, 13]:
+                bOdds += 10 
+
+            attackOdds.extend([0] * max(0, aOdds))
+            attackOdds.extend([1] * max(0, bOdds))
+            attackOdds.extend([1] * max(0, xOdds))
+            random.shuffle(attackOdds)
+            exec(self.outputs[random.choice(attackOdds)])
+            self.move()
+
+
+    def getComboPotential(self):
+        pass
+
+
 
     def getInputsHelper(self):        
         playerIsFar = self.playerDistance() / fighter.screenWidth
         playerIsNear = 1 - playerIsFar
-        healthDifference = (self.health - self.opponent.health)/(self.health+1)
-        distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
+        healthPercentMe = self.health / fighter.startingHealth
+        healthPercentOther = self.opponent.health / fighter.startingHealth
         distanceBehindMe = self.roomBehind() / fighter.screenWidth
+        distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
         comboPotential = self.getComboPotential()
         canJump = 1 if self.canJump else 0
-        return [[playerIsFar,
-                 playerIsNear,
-                 healthDifference,
-                 distanceBehindMe,
-                 distanceBehindOther,
-                 comboPotential,
-                 canJump]]
-
-    def getComboPotential(self):
-        return random.randint(0,9)
+        return (playerIsFar, playerIsNear,
+                healthPercentMe, healthPercentOther,
+                distanceBehindMe, distanceBehindOther,
+                comboPotential, canJump)
 
     # Taken from course website
     def make2dList(self, rows, cols):
@@ -472,10 +560,18 @@ class AI(fighter):
 class xbox(fighter):
     def __init__(self, startX, controller, color):
         super().__init__(startX, color)
-        try:
-            self.controller = X_input.sampleJoystick(controller)
-        except Exception:
-            self.controller = None
+        self.controller = X_input.sampleJoystick(controller)
+        
+
+    def getInput(self):
+        if self.controller != None:
+            data = next(self.controller)
+            if data != None:
+                if data[0] != None and data[0][2] == 1:
+                    self.buttonLog.join(data[0][1])
+                    self.move()
+                if data[1] != None:
+                    self.analogStick(data[1])
 
 
 class body(object):
@@ -559,5 +655,3 @@ class body(object):
         pass
     
     pass
-
-
