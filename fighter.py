@@ -1,9 +1,10 @@
 from simpleQueue import simpleQueue
-import X_input
-import math, random, time
+import X_   
+import math, random, threading
 
 class fighter(object): 
     _registry = []
+    threads = []
     screenWidth = 600
     screenHeight = 400
     GRAVITY = -0.5
@@ -11,16 +12,16 @@ class fighter(object):
     startingHealth = 200
     gameOver = False
     controls = {
-        1: "pass",                                                  # Dpad Up
-        2: "pass",                                                  # Dpad Down
-        3: "pass",                                      # Dpad Left
-        4: "pass",                                      # Dpad Right
+        1: "pass",                                                              # Dpad Up
+        2: "pass",                                                              # Dpad Down
+        3: "pass",                                                              # Dpad Left
+        4: "pass",                                                              # Dpad Right
         5: "pass",                                                              # Menu
         6: "pass",                                                              # View
         7: "pass",                                                              # L_Stick
         8: "pass",                                                              # R_Stick
-        9: "pass",                                              # Left Bumper
-        10: "pass",                                              # Right Bumper
+        9: "pass",                                                              # Left Bumper
+        10: "pass",                                                             # Right Bumper
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.nextState = 'strongPunch1'",                                  # B - Strong Punch
         15: "self.nextState = 'fastKick1'",                                     # X - Fast Kick
@@ -37,6 +38,7 @@ class fighter(object):
     # Magic Methods
     def __init__(self, startX, color):
         fighter._registry.append(self)
+        fighter.threads.append(0)
         self.color = color
         self.x = startX
         self.body = body((startX, fighter.FLOOR))
@@ -46,6 +48,7 @@ class fighter(object):
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
+        self.crouching = False
         self.combo = None
         self.comboList = {
             "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
@@ -380,13 +383,16 @@ class fighter(object):
 
     def analogStick(self, intake):
         control, data = intake
+        self.crouching = False
         if control == 'left_trigger': pass
         elif control == 'right_trigger': pass
         elif control == 'l_thumb_x': 
             self.body.moveBody(5 * data, 0)
         elif control == 'l_thumb_y':
             if data >= 0: self.jump()
-            else: self.nextState = "crouch"
+            else:
+                self.nextState = "crouch"
+                self.crouching = True
         elif control == 'r_thumb_x':
             self.body.moveBody(5 * data, 0)
         elif control == 'r_thumb_y': pass
@@ -494,11 +500,14 @@ class AI(fighter):
             if distance <= 30:
                 aOdds += 2
                 bOdds += 5
-                xOdds += 1
+                xOdds += 3
             elif distance <= 60:
                 aOdds += 6
                 bOdds += 1
-                xOdds += 2
+                xOdds += 3
+
+            if self.opponent.crouching == True:
+                xOdds += 8
 
             if self.buttonLog.list[-2:0] == [13, 13]:
                 bOdds += 10 
