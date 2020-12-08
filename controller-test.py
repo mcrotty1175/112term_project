@@ -4,7 +4,7 @@ from simpleQueue import simpleQueue
 
 def main():
     player1 = simpleQueue(5)
-    controller0 = X_input.sampleJoystick(0)
+    controller0 = X_input.sampleJoystick(1)
     buttonMap = {
             1: "Up",
             2: "Down",
@@ -37,4 +37,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("hello")
     main()

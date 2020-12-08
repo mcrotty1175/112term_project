@@ -43,7 +43,6 @@ class fighter(object):
         self.health = fighter.startingHealth
         self.buttonLog = simpleQueue(10)
         self.frameTime = 0
-        self.currentState = "idel1"
         self.currentState = "idle1"
         self.nextState = "idle1"
         self.opponent = None
@@ -85,7 +84,6 @@ class fighter(object):
     def updateFrames(): # Tells redrawAll how to draw each fighter
         for player in fighter._registry:
             exec(f"player.{player.currentState}()")
-            player.lastState = player.currentState
             player.currentState = player.nextState
             player.checkCombos()
             player.nextState = player.getNextState()
@@ -140,7 +138,7 @@ class fighter(object):
     def playerDistance(self): # Gets the distance between the players
         x0, y0 = self.getPos()
         x1, y1 = self.opponent.getPos()
-        return self.distance(x0, y0, x1, y1)
+        return self.distance(x0, 0, x1, 0)
 
     def crouch(self):
         self.body.moveLimb("leftLeg", 150, 270)
@@ -411,7 +409,7 @@ class AI(fighter):
             7:"self.analogStick(('l_thumb_y', -0.5))",
             8:"pass"
         }
-        
+        '''
         self.weights1 = [[random.random(),
                           random.random(),
                           random.random(),
@@ -428,6 +426,7 @@ class AI(fighter):
         print(self.weights1)
         print(self.weights2)
         self.links = self.multiplyMatrix(self.weights2, self.weights1)
+        '''
     
     """
     # Michael being STOOPID trying to use a NN
@@ -445,7 +444,7 @@ class AI(fighter):
         # Calulate the odds of moving
         far, near, healthMe, healthOther, distanceMe, distanceOther, combo, jump = self.getInputsHelper()
         jumpThreshold = crouchOdds = moveLeftOdds = moveRightOdds = 0
-        stillOdds = 3
+        stillOdds = 5
 
         # +1: Enemy on Right Side
         # -1: Enemy on Left Side
@@ -483,13 +482,9 @@ class AI(fighter):
         
         if jumpThreshold >= 1.0:
             self.analogStick(('l_thumb_y', 1))
-        else:
-            if random.random() > .85:
-                self.analogStick(('l_thumb_y', -1))
 
         movementOdds.extend([4] * max(0, moveRightOdds))
         movementOdds.extend([6] * max(0, moveRightOdds))
-        random.shuffle(movementOdds)
         exec(self.outputs[random.choice(movementOdds)])
 
         if self.currentState in ["idle1", "idle2"]: # Filter to prevent spamming
@@ -497,7 +492,7 @@ class AI(fighter):
             attackOdds = [8] * stillOdds
             distance = self.playerDistance()
             if distance <= 30:
-                aOdds += 3
+                aOdds += 2
                 bOdds += 5
                 xOdds += 1
             elif distance <= 60:
@@ -511,7 +506,6 @@ class AI(fighter):
             attackOdds.extend([0] * max(0, aOdds))
             attackOdds.extend([1] * max(0, bOdds))
             attackOdds.extend([1] * max(0, xOdds))
-            random.shuffle(attackOdds)
             exec(self.outputs[random.choice(attackOdds)])
             self.move()
 

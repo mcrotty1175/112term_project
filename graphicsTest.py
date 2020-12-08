@@ -1,6 +1,7 @@
 from my_cmu_112_graphics import *
 from fighter import *
 
+
 def appStarted(app):
     # Background Image found on https://entertainment.ie/gaming/pics-heres-the-real-life-locations-of-street-fighter-iis-stages-277425/
     app.background = app.loadImage("https://img.resized.co/entertainment/eyJkYXRhIjoie1widXJsXCI6XCJodHRwOlxcXC9cXFwvczMtZXUtd2VzdC0xLmFtYXpvbmF3cy5jb21cXFwvZW50ZXJ0YWlubWVudGllXFxcL3N0b3JhZ2VcXFwvaW1hZ2VzX2NvbnRlbnRcXFwvcmVjdGFuZ2xlXFxcLzYyMHgzNzJcXFwvdW5uYW1lZDYyMDE2MTEzMTgxOTcwNS5qcGdcIixcIndpZHRoXCI6NjQwLFwiaGVpZ2h0XCI6Mzg0LFwiZGVmYXVsdFwiOlwiaHR0cHM6XFxcL1xcXC9lbnRlcnRhaW5tZW50LmllXFxcL2ltYWdlc1xcXC9uby1pbWFnZS5wbmdcIn0iLCJoYXNoIjoiZDgzYjBmNzVhNmY5YWViMTRmMjM1MjQxOTBhMGI5NWIyZDE0NjY4OCJ9/unnamed620161131819705.jpg")
@@ -11,9 +12,9 @@ def appStarted(app):
     app.winner = None
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
-    app.player1 = xbox(app.width*(1/3), 0, "red")
+    # app.player1 = xbox(app.width*(1/3), 1, "red")
     # app.player2 = xbox(app.width*(2/3), 1, "blue")
-    # app.player1 = AI(app.width/3, "red")
+    app.player1 = AI(app.width/3, "red")
     app.player2 = AI(app.width*(2/3), "blue")
     app.player1.opponent = app.player2
     app.player2.opponent = app.player1
