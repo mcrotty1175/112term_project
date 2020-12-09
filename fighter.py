@@ -1,5 +1,5 @@
 from simpleQueue import simpleQueue
-import X_   
+import X_input
 import math, random, threading
 
 class fighter(object): 
@@ -11,6 +11,8 @@ class fighter(object):
     FLOOR = 0
     startingHealth = 200
     gameOver = False
+    player1Color = "red"
+    player2Color = "blue"
     controls = {
         1: "pass",                                                              # Dpad Up
         2: "pass",                                                              # Dpad Down
@@ -25,13 +27,7 @@ class fighter(object):
         13: "self.nextState = 'fastPunch1'",                                    # A - Fast Punch
         14: "self.nextState = 'strongPunch1'",                                  # B - Strong Punch
         15: "self.nextState = 'fastKick1'",                                     # X - Fast Kick
-        16: "pass",                                                             # Y - Strong Kick (self.nextState = 'strongKick1')
-        # 'left_trigger': "pass",                                                 # Left Trigger Press
-        # 'right_trigger': "pass",                                                # Right Trigger Press
-        # 'l_thumb_x': "self.body.moveBody(2 * distance, 0)",                     # Left Stick X Positive
-        # 'l_thumb_y': "self.jump(distance)",                                     # Left Stick Y Positive 
-        # 'r_thumb_x': "self.body.moveBody(5 * distance, 0)",                     # Right Stick X Positive
-        # 'r_thumb_y': "self.nextState = 'crouch'",                               # Right Stick Y Positive
+        16: "self.nextState = 'strongKick1'",                                    # Y - Strong Kick
         None:"pass"
     }
 
@@ -49,6 +45,7 @@ class fighter(object):
         self.nextState = "idle1"
         self.opponent = None
         self.crouching = False
+        self.canJump = True
         self.combo = None
         self.comboList = {
             "cheat": [1, 1, 2, 2, 3, 4, 3, 4, 14, 13],
@@ -56,15 +53,16 @@ class fighter(object):
             "quickCombo":[13, 13, 14],
         }
         self.states = {
-            "idleStates":["idle1"],
+            "idleStates":["idle1","idle2"],
             "fastPunchStates":["fastPunch1", "fastPunch2", "fastPunch3"],
             "strongPunchStates":["strongPunch1", "strongPunch2", "strongPunch3"],
             "fastKickStages":["fastKick1", "fastKick2","fastKick3", "fastKick4"],
             "strongKickStates":["strongKick1", "strongKick2", "strongKick3",
                                 "strongKick4", "strongKick5", "strongKick6"],
             "crouchStates":["crouch"],
-            "quickCombo":["quickCombo1", "quickCombo2", "quickCombo3", "quickCombo4"
-                            , "quickCombo5", "quickCombo6", "quickCombo7"]
+            "hitStun":["hitStun"],
+            "quickCombo":["quickCombo1", "quickCombo2", "quickCombo3", "quickCombo4",
+                          "quickCombo5", "quickCombo6", "quickCombo7"]
         }
     
     # Static Methods
@@ -125,9 +123,6 @@ class fighter(object):
         command = self.buttonLog.getLastElement()
         if isinstance(command, int):
             exec(fighter.controls[command])
-        # elif isinstance(command, tuple):
-        #     distance = command[1]
-        #     exec(fighter.controls[command[0]])
 
     def distance(self, x0, y0, x1, y1):
         return ((x1 - x0)**2 + (y1 - y0)**2)**(0.5)
@@ -144,42 +139,82 @@ class fighter(object):
         return self.distance(x0, 0, x1, 0)
 
     def crouch(self):
-        self.body.moveLimb("leftLeg", 150, 270)
-        self.body.moveLimb("rightLeg", 30, 270)
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 130, 300)
+            self.body.moveLimb("rightLeg", 130, 300)
+        else: 
+            self.body.moveLimb("leftLeg", 30, 270)
+            self.body.moveLimb("rightLeg", 30, 270)
         dy = self.getOptimalHeightDelta()
         self.body.moveBody(0, dy)
 
     def idle1(self): # Default Idle Position
-        # Head
-        self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
-        # Left Arm
-        self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
-        self.body.moveLimb("leftArm", 225, 105)
-        # Right Arm
-        self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
-        self.body.moveLimb("rightArm", 315, 85)
-        # Left Leg
-        self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
-        self.body.moveLimb("leftLeg", 240, 270)
-        # Right Leg
-        self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
-        self.body.moveLimb("rightLeg", 300, 270)
-        
-    def idle2(self): # Secondary Idle Position (Need to change)
-        # Head
-        self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
-        # Left Arm
-        self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
-        self.body.moveLimb("leftArm", 225, 135)
-        # Right Arm
-        self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
-        self.body.moveLimb("rightArm", 0, 90)
-        # Left Leg
-        self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
-        self.body.moveLimb("leftLeg", 240, 270)
-        # Right Leg
-        self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
-        self.body.moveLimb("rightLeg", 300, 270)
+        if self.opponent.body.center < self.body.center:
+            # Head
+            self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+            # Left Arm
+            self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+            self.body.moveLimb("leftArm", 225, 105)
+            # Right Arm
+            self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+            self.body.moveLimb("rightArm", 230, 120)
+            # Left Leg
+            self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+            self.body.moveLimb("leftLeg", 250, 290)
+            # Right Leg
+            self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+            self.body.moveLimb("rightLeg", 250, 290)
+        else:
+            # Head
+            self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+            # Left Arm
+            self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+            self.body.moveLimb("leftArm", 320, 75)
+            # Right Arm
+            self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+            self.body.moveLimb("rightArm", 315, 85)
+            # Left Leg
+            self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+            self.body.moveLimb("leftLeg", 290, 250)
+            # Right Leg
+            self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+            self.body.moveLimb("rightLeg", 290, 250)
+
+        # self.body.moveBody(0, self.getOptimalHeightDelta())
+
+    def idle2(self): # Secondary Idle Position
+        if self.opponent.body.center < self.body.center:
+            # Head
+            self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+            # Left Arm
+            self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+            self.body.moveLimb("leftArm", 225, 105)
+            # Right Arm
+            self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+            self.body.moveLimb("rightArm", 230, 120)
+            # Left Leg
+            self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+            self.body.moveLimb("leftLeg", 260, 280)
+            # Right Leg
+            self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+            self.body.moveLimb("rightLeg", 260, 280)
+        else:
+            # Head
+            self.body.head = self.body.getPart(self.body.center, 0, (body.THH + body.HR))
+            # Left Arm
+            self.body.shoulderL = self.body.getPart(self.body.center, -1 * body.THW, body.THH)
+            self.body.moveLimb("leftArm", 320, 75)
+            # Right Arm
+            self.body.shoulderR = self.body.getPart(self.body.center, body.THW, body.THH)
+            self.body.moveLimb("rightArm", 315, 85)
+            # Left Leg
+            self.body.hipL = self.body.getPart(self.body.center, -1 * body.THW, -1* body.THH)
+            self.body.moveLimb("leftLeg", 280, 260)
+            # Right Leg
+            self.body.hipR = self.body.getPart(self.body.center, body.THW, -1* body.THH)
+            self.body.moveLimb("rightLeg", 280, 260)
+
+        # self.body.moveBody(0, self.getOptimalHeightDelta())
 
     def dealDamage(self, appendage, baseDamage):
         x0, y0 = getattr(self.body, appendage)
@@ -258,10 +293,12 @@ class fighter(object):
 
     def fastKick2(self):
         if self.opponent.body.center < self.body.center:
+            self.body.rotateAroundHip("hipR", 30)
             self.body.moveLimb("leftLeg", 200, 225)
             self.dealDamage("kneeL", 5)
             self.dealDamage("footL", 6)
         else:
+            self.body.rotateAroundHip("hipL", 30)
             self.body.moveLimb("rightLeg", 340, 315)
             self.dealDamage("kneeR", 5)
             self.dealDamage("footR", 6)
@@ -281,43 +318,55 @@ class fighter(object):
             self.body.moveLimb("leftLeg", 200, 200)
         else:
             self.body.moveLimb("rightLeg", 340, 340)
-    '''    # SAVING to do Post TP2 deadline for better animation
+    
     def strongKick1(self):
         if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
+            self.body.rotateAroundHip("hipR", 30)
+            self.body.moveLimb("leftLeg", 210, 260)
         else:
-            self.body.moveLimb("leftLeg")
+            self.body.rotateAroundHip("hipL", 30)
+            self.body.moveLimb("rightLeg", 330, 290)
 
-    def strongKick2(self):
+    def strongKick2(self): 
         if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
+            self.body.rotateAroundHip("hipR", 45)
+            self.body.moveLimb("leftLeg", 210, 260)
         else:
-            self.body.moveLimb("leftLeg")
+            self.body.rotateAroundHip("hipL", 45)
+            self.body.moveLimb("rightLeg", 330, 290)
 
-    def strongKick3(self): 
-        if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
-        else:
-            self.body.moveLimb("leftLeg")
+    def strongKick3(self): pass
+        # if self.opponent.body.center < self.body.center:
+        #     self.body.rotateAroundHip("hipR", 30)
+        #     self.body.moveLimb("leftLeg", 210, 260)
+        # else:
+        #     self.body.rotateAroundHip("hipL", 30)
+        #     self.body.moveLimb("rightLeg", 330, 290)
 
-    def strongKick4(self): 
-        if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
-        else:
-            self.body.moveLimb("leftLeg")
+    def strongKick4(self): pass
+        # if self.opponent.body.center < self.body.center:
+        #     self.body.rotateAroundHip("hipR", -30)
+        #     self.body.moveLimb("leftLeg", 210, 260)
+        # else:
+        #     self.body.rotateAroundHip("hipL", -30)
+        #     self.body.moveLimb("rightLeg", 330, 290)
 
-    def strongKick5(self): 
-        if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
-        else:
-            self.body.moveLimb("leftLeg")
+    def strongKick5(self): pass
+        # if self.opponent.body.center < self.body.center:
+        #     self.body.rotateAroundHip("hipR", -30)
+        #     self.body.moveLimb("leftLeg", 210, 260)
+        # else:
+        #     self.body.rotateAroundHip("hipL", -30)
+        #     self.body.moveLimb("rightLeg", 330, 290)
 
-    def strongKick6(self): 
-        if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg")
-        else:
-            self.body.moveLimb("leftLeg")
-    '''
+    def strongKick6(self): pass
+        # if self.opponent.body.center < self.body.center:
+        #     self.body.rotateAroundHip("hipR", -30)
+        #     self.body.moveLimb("leftLeg", 210, 260)
+        # else:
+        #     self.body.rotateAroundHip("hipL", -30)
+        #     self.body.moveLimb("rightLeg", 330, 290)
+
     def quickCombo1(self):
         self.body.moveLimb("leftArm", 225, 105)
         self.body.moveLimb("rightArm", 315, 85)
@@ -399,7 +448,6 @@ class fighter(object):
 
     def getInput(self):
         pass
-
                    
 class AI(fighter):
     def __init__(self, startX, color):
@@ -415,40 +463,10 @@ class AI(fighter):
             7:"self.analogStick(('l_thumb_y', -0.5))",
             8:"pass"
         }
-        '''
-        self.weights1 = [[random.random(),
-                          random.random(),
-                          random.random(),
-                          random.random(),
-                          random.random(),
-                          random.random(),
-                          random.random(),
-                          random.random()]]
-        self.weights2 = [   [random.random()], [random.random()],
-                            [random.random()], [random.random()],
-                            [random.random()], [random.random()],
-                            [random.random()], [random.random()],
-                            [random.random()], [random.random()]    ]
-        print(self.weights1)
-        print(self.weights2)
-        self.links = self.multiplyMatrix(self.weights2, self.weights1)
-        '''
-    
-    """
-    # Michael being STOOPID trying to use a NN
-    def getInput(self):
-        if self.currentState == "idle1":
-            inputs = self.getInputsHelper()
-            output = self.multiplyMatrix(inputs, self.links)
-            output = output[0]
-            command = output.index(max(output))
-            # print(self.outputs[command])
-            exec(self.outputs[command])        
-    """
-
+        
     def getInput(self):
         # Calulate the odds of moving
-        far, near, healthMe, healthOther, distanceMe, distanceOther, combo, jump = self.getInputsHelper()
+        far, near, healthMe, healthOther, distanceMe, distanceOther, jump = self.getInputsHelper()
         jumpThreshold = crouchOdds = moveLeftOdds = moveRightOdds = 0
         stillOdds = 5
 
@@ -519,11 +537,6 @@ class AI(fighter):
             self.move()
 
 
-    def getComboPotential(self):
-        pass
-
-
-
     def getInputsHelper(self):        
         playerIsFar = self.playerDistance() / fighter.screenWidth
         playerIsNear = 1 - playerIsFar
@@ -531,34 +544,10 @@ class AI(fighter):
         healthPercentOther = self.opponent.health / fighter.startingHealth
         distanceBehindMe = self.roomBehind() / fighter.screenWidth
         distanceBehindOther = self.opponent.roomBehind() / fighter.screenWidth
-        comboPotential = self.getComboPotential()
-        canJump = 1 if self.canJump else 0
+        jump = 1 if self.canJump else 0
         return (playerIsFar, playerIsNear,
                 healthPercentMe, healthPercentOther,
-                distanceBehindMe, distanceBehindOther,
-                comboPotential, canJump)
-
-    # Taken from course website
-    def make2dList(self, rows, cols):
-        return [ ([0] * cols) for row in range(rows) ]
-
-    # Taken from Prof Kosbie's optional advanced lecture on Gauss elim
-    # https://d1b10bmlvqabco.cloudfront.net/paste/h16fq7h26zh16l/d7570232b4842f99f11e3e989c5b7b0136d10b1bf0f4b9de6e1e98e5c6898f2d/yikesyikes.py 
-    def multiplyMatrix(self, M1, M2):
-        # M3 = M1 * M2
-        r1, c1 = len(M1), len(M1[0]) # gives you rows x cols
-        r2, c2 = len(M2), len(M2[0])
-        assert(c1 == r2)
-        r3 = r1
-        c3 = c2
-        M3 = self.make2dList(r3, c3)
-        for r in range(r1):
-            for c in range(c2):
-                # set M3[r][c] to the dot product of
-                # row r in M1 and col c in M2
-                for i in range(c1):
-                    M3[r][c] += M1[r][i] * M2[i][c]
-        return M3
+                distanceBehindMe, distanceBehindOther, jump)
 
 class xbox(fighter):
     def __init__(self, startX, controller, color):
@@ -567,15 +556,15 @@ class xbox(fighter):
         
 
     def getInput(self):
-        if self.controller != None:
-            data = next(self.controller)
-            if data != None:
-                if data[0] != None and data[0][2] == 1:
-                    self.buttonLog.join(data[0][1])
-                    self.move()
-                if data[1] != None:
-                    self.analogStick(data[1])
-
+        if self.currentState in ["idle1", "idle2"]:
+            if self.controller != None:
+                data = next(self.controller)
+                if data != None:
+                    if data[0] != None and data[0][2] == 1:
+                        self.buttonLog.join(data[0][1])
+                        self.move()
+                    if data[1] != None:
+                        self.analogStick(data[1])
 
 class body(object):
     THW = 10                                                                    # TORSO_HALF_WIDTH
@@ -585,10 +574,10 @@ class body(object):
     LL = 30                                                                     # LEG_LENGTH
     LW = 8                                                                      # LIMB_WIDTH
     bodyParts = ["head", "center",
-                "shoulderL", "elbowL", "handL",
-                "shoulderR", "elbowR", "handR",
-                "hipL", "kneeL", "footL",
-                "hipR", "kneeR", "footR"]
+                 "shoulderL", "elbowL", "handL",
+                 "shoulderR", "elbowR", "handR",
+                 "hipL", "kneeL", "footL",
+                 "hipR", "kneeR", "footR"]
     limbs = {
         "leftArm":[AL, "shoulderL", "elbowL", "handL"],
         "rightArm":[AL, "shoulderR", "elbowR", "handR"],
@@ -656,5 +645,27 @@ class body(object):
         saddlePos = self.getLimb(hingePos, length, theta2)
         setattr(self, saddle, saddlePos)
         pass
+
+    def distance(self, point1, point2):
+        x1, y1 = getattr(self, point1)
+        x2, y2 = getattr(self, point2)
+        return (abs(x1 - x2), abs(y1 - y2))
+        # return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
     
-    pass
+    def rotateAroundHip(self, hip, angle):
+        angle = angle / 180 * math.pi
+        if hip == "hipL":
+            for part in ["head", "shoulderL", "shoulderR", "hipR"]:
+                x,y = getattr(self, part)
+                dx, dy = self.distance(hip, part)
+                x -= dy * math.sin(angle)
+                y -= dx * math.sin(angle)
+                setattr(self, part, (x,y))
+        else: 
+            for part in ["head", "shoulderR", "shoulderL", "hipL"]:
+                x,y = getattr(self, part)
+                dx, dy = self.distance("hipR", part)
+                x += dy * math.sin(angle)
+                y -= dx * math.sin(angle)
+                setattr(self, part, (x,y))
+        

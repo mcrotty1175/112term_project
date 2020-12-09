@@ -12,9 +12,9 @@ def appStarted(app):
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
     app.player1 = xbox(app.width*(1/3), 0, "red")
-    # app.player2 = xbox(app.width*(2/3), 1, "blue")
+    app.player2 = xbox(app.width*(2/3), 1, "blue")
     # app.player1 = AI(app.width/3, "red")
-    app.player2 = AI(app.width*(2/3), "blue")
+    # app.player2 = AI(app.width*(2/3), "blue")
     app.player1.opponent = app.player2
     app.player2.opponent = app.player1
     app.limbWidth = body.LW
@@ -92,8 +92,8 @@ def drawPlayers(app, canvas):
 
         # Draw the Torso
         # Done like this to allow for better animations in future
-        canvas.create_polygon(player.body.shoulderL, player.body.shoulderR, 
-                              player.body.hipR, player.body.hipL, 
+        canvas.create_polygon(player.body.hipL, player.body.shoulderL, 
+                              player.body.shoulderR, player.body.hipR, 
                               fill=color, width=0)
 
         # Draw the Head
