@@ -52,7 +52,9 @@ class SplashScreen(Mode):
     def timerFired(mode):
         mode.count += 1
         fighter.applyGravity()
-
+        for player in fighter._registry:
+            player.health = fighter.startingHealth
+        
         for i in range(len(fighter._registry)):
             fighter.threads[i] = threading.Thread(target=fighter._registry[i].getInput)
             fighter.threads[i].start()
@@ -122,8 +124,7 @@ class SplashScreen(Mode):
             canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, width=0)
     
     def drawBackground(mode, canvas):
-        canvas.create_image(mode.width/2, mode.height/2,
-                            image=mode.background)
+        canvas.create_line(0, fighter.FLOOR, mode.width, fighter.FLOOR)
 
     def drawGameModes(mode, canvas):
         mode.bW = 128 # buttonWidth
@@ -141,8 +142,8 @@ class SplashScreen(Mode):
         mode.drawBackground(canvas)
         mode.drawPlayers(canvas)
         mode.drawGameModes(canvas)
-        canvas.create_text(mode.app.width/2, mode.app.height/4, text="Road Combat 2",
-                            font="arial 40 bold", fill="white")
+        canvas.create_text(mode.app.width/2, mode.app.height/4, text="Road Combat",
+                            font="arial 40 bold", fill="Black")
 
 class ColorSelectSingle(Mode):
     def appStarted(mode):
@@ -208,8 +209,8 @@ class ColorSelectMulti(Mode):
         numControllers = X_input.checkControllers()
         if numControllers > 0:
             mode.app.player1 = xbox(mode.app.width/3, 0, mode.app.colorPlayer1)
-            if numControllers >= 2:
-                mode.app.player2 = xbox(mode.app.width/3, 1, mode.app.colorPlayer1)
+            if numControllers > 1:
+                mode.app.player2 = xbox(mode.app.width*(2/3), 1, mode.app.colorPlayer2)
             else:
                 mode.app.player2 = fighter(mode.app.width*(2/3), mode.app.colorPlayer2)
         else:
@@ -288,9 +289,10 @@ class Battle(Mode):
 
         for player in fighter._registry:
             player.health = fighter.startingHealth
-
         mode.app.player1.color = mode.app.colorPlayer1
         mode.app.player2.color = mode.app.colorPlayer2
+
+        print(mode.app.player1.color, mode.app.player2.color)
         mode.app.player1.opponent = mode.app.player2
         mode.app.player2.opponent = mode.app.player1
 
