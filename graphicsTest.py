@@ -11,7 +11,7 @@ def appStarted(app):
     app.winner = None
     fighter.GRAVITY = -0.5 * app.timerDelay
     fighter.FLOOR = app.height - 20
-    app.player1 = xbox(app.width*(1/3), 0, "red")
+    app.player1 = fighter(app.width*(1/3), "red")
     app.player2 = xbox(app.width*(2/3), 1, "blue")
     # app.player1 = AI(app.width/3, "red")
     # app.player2 = AI(app.width*(2/3), "blue")
@@ -19,6 +19,10 @@ def appStarted(app):
     app.player2.opponent = app.player1
     app.limbWidth = body.LW
     app.game = True
+
+def keyPressed(app, event):
+    if event.key == "w":
+        app.player1.analogStick(("l_thumb_y", 1))
 
 def timerFired(app):
     app.count += 1
