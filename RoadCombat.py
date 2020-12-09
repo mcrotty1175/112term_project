@@ -6,14 +6,12 @@ from fighter import *
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 360
 
-
 class MyModalApp(ModalApp):
     def appStarted(app):
         # Set Up App
         app.splashScreen = SplashScreen()
         app.colorSelectSingle = ColorSelectSingle()
         app.colorSelctMulti = ColorSelectMulti()
-        app.fight = Battle()
         app.timerDelay = 1
 
         fighter.screenWidth = app.width
@@ -159,33 +157,33 @@ class ColorSelectSingle(Mode):
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "red"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
             if 230 <= event.x <= 410: 
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "green"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
             if 420 <= event.x <= 600: 
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "blue"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
         elif 220 <= event.y <= 300:
             if 40 <= event.x <= 220: 
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "cyan"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
             if 230 <= event.x <= 410: 
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "yellow"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
             if 420 <= event.x <= 600: 
                 mode.app.colorPlayer2 = mode.app.colorPlayer1 = "magenta"
                 while mode.app.colorPlayer2 == mode.app.colorPlayer1:
                     mode.app.colorPlayer2 = random.sample(mode.app.colors, 1)
-                mode.app.setActiveMode(mode.app.fight)
+                mode.app.setActiveMode(Battle())
 
     def drawColors(mode, canvas):
         canvas.create_rectangle(40, 120, 220, 200, fill="red")
@@ -242,23 +240,23 @@ class ColorSelectMulti(Mode):
             if 120 <= event.y <= 200: 
                 if 40 <= event.x <= 220: 
                     mode.app.colorPlayer2 = "red"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
                 if 230 <= event.x <= 410: 
                     mode.app.colorPlayer2 = "green"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
                 if 420 <= event.x <= 600: 
                     mode.app.colorPlayer2 = "blue"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
             elif 220 <= event.y <= 300:
                 if 40 <= event.x <= 220: 
                     mode.app.colorPlayer2 = "cyan"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
                 if 230 <= event.x <= 410: 
                     mode.app.colorPlayer2 = "yellow"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
                 if 420 <= event.x <= 600: 
                     mode.app.colorPlayer2 = "magenta"
-                    mode.app.setActiveMode(mode.app.fight)
+                    mode.app.setActiveMode(Battle())
 
     def drawColors(mode, canvas):
         canvas.create_rectangle(40, 120, 220, 200, fill="red")
