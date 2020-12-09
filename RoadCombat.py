@@ -4,6 +4,7 @@ from fighter import *
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 360
 
+
 class MyModalApp(ModalApp):
     def appStarted(app):
         # Set Up App
