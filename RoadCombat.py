@@ -30,6 +30,7 @@ class MyModalApp(ModalApp):
 class SplashScreen(Mode):
     def appStarted(mode):
         mode.count = 0
+        mode.timerDelay = 1
         fighter.GRAVITY = -0.5 * mode.timerDelay
         fighter.FLOOR = mode.height - 20
         mode.app.player1.opponent = mode.app.player2
@@ -139,19 +140,19 @@ class ColorSelect(Mode):
 
 class Battle(Mode):
     def appStarted(mode):
-    # Background Image found on https://entertainment.ie/gaming/pics-heres-the-real-life-locations-of-street-fighter-iis-stages-277425/
-    mode.background = mode.loadImage("https://img.resized.co/entertainment/eyJkYXRhIjoie1widXJsXCI6XCJodHRwOlxcXC9cXFwvczMtZXUtd2VzdC0xLmFtYXpvbmF3cy5jb21cXFwvZW50ZXJ0YWlubWVudGllXFxcL3N0b3JhZ2VcXFwvaW1hZ2VzX2NvbnRlbnRcXFwvcmVjdGFuZ2xlXFxcLzYyMHgzNzJcXFwvdW5uYW1lZDYyMDE2MTEzMTgxOTcwNS5qcGdcIixcIndpZHRoXCI6NjQwLFwiaGVpZ2h0XCI6Mzg0LFwiZGVmYXVsdFwiOlwiaHR0cHM6XFxcL1xcXC9lbnRlcnRhaW5tZW50LmllXFxcL2ltYWdlc1xcXC9uby1pbWFnZS5wbmdcIn0iLCJoYXNoIjoiZDgzYjBmNzVhNmY5YWViMTRmMjM1MjQxOTBhMGI5NWIyZDE0NjY4OCJ9/unnamed620161131819705.jpg")
-    mode.background = ImageTk.PhotoImage(mode.background)
-    
-    mode.count = 0
-    mode.timerDelay = 1
-    mode.winner = None
-    fighter.GRAVITY = -0.5 * mode.timerDelay
-    fighter.FLOOR = mode.height - 20
-    mode.app.player1.opponent = mode.app.player2
-    mode.app.player2.opponent = mode.app.player1
-    mode.limbWidth = body.LW
-    mode.game = True
+        # Background Image found on https://entertainment.ie/gaming/pics-heres-the-real-life-locations-of-street-fighter-iis-stages-277425/
+        mode.background = mode.loadImage("https://img.resized.co/entertainment/eyJkYXRhIjoie1widXJsXCI6XCJodHRwOlxcXC9cXFwvczMtZXUtd2VzdC0xLmFtYXpvbmF3cy5jb21cXFwvZW50ZXJ0YWlubWVudGllXFxcL3N0b3JhZ2VcXFwvaW1hZ2VzX2NvbnRlbnRcXFwvcmVjdGFuZ2xlXFxcLzYyMHgzNzJcXFwvdW5uYW1lZDYyMDE2MTEzMTgxOTcwNS5qcGdcIixcIndpZHRoXCI6NjQwLFwiaGVpZ2h0XCI6Mzg0LFwiZGVmYXVsdFwiOlwiaHR0cHM6XFxcL1xcXC9lbnRlcnRhaW5tZW50LmllXFxcL2ltYWdlc1xcXC9uby1pbWFnZS5wbmdcIn0iLCJoYXNoIjoiZDgzYjBmNzVhNmY5YWViMTRmMjM1MjQxOTBhMGI5NWIyZDE0NjY4OCJ9/unnamed620161131819705.jpg")
+        mode.background = ImageTk.PhotoImage(mode.background)
+        
+        mode.count = 0
+        mode.timerDelay = 1
+        mode.winner = None
+        fighter.GRAVITY = -0.5 * mode.timerDelay
+        fighter.FLOOR = mode.height - 20
+        mode.app.player1.opponent = mode.app.player2
+        mode.app.player2.opponent = mode.app.player1
+        mode.limbWidth = body.LW
+        mode.game = True
 
     def timerFired(mode):
         mode.count += 1
