@@ -58,11 +58,11 @@ class fighter(object):
             "strongPunchStates":["strongPunch1", "strongPunch2", "strongPunch3"],
             "fastKickStages":["fastKick1", "fastKick2","fastKick3", "fastKick4"],
             "strongKickStates":["strongKick1", "strongKick2", "strongKick3",
-                                "strongKick4", "strongKick5", "strongKick6"],
+                                "strongKick4"],
             "crouchStates":["crouch"],
             "hitStun":["hitStun"],
             "quickCombo":["quickCombo1", "quickCombo2", "quickCombo3", "quickCombo4",
-                          "quickCombo5", "quickCombo6", "quickCombo7"]
+                            "quickCombo5", "quickCombo6", "quickCombo7"]
         }
     
     # Static Methods
@@ -293,23 +293,23 @@ class fighter(object):
 
     def fastKick2(self):
         if self.opponent.body.center < self.body.center:
-            self.body.rotateAroundHip("hipR", 30)
-            self.body.moveLimb("leftLeg", 200, 225)
+            # self.body.rotateAroundHip("hipR", 45)
+            self.body.moveLimb("leftLeg", 200, 240)
             self.dealDamage("kneeL", 5)
             self.dealDamage("footL", 6)
         else:
-            self.body.rotateAroundHip("hipL", 30)
-            self.body.moveLimb("rightLeg", 340, 315)
+            # self.body.rotateAroundHip("hipL", 45)
+            self.body.moveLimb("rightLeg", 340, 300)
             self.dealDamage("kneeR", 5)
             self.dealDamage("footR", 6)
     
     def fastKick3(self):
         if self.opponent.body.center < self.body.center:
-            self.body.moveLimb("leftLeg", 180, 180)
+            self.body.moveLimb("leftLeg", 210, 210)
             self.dealDamage("kneeL", 5)
             self.dealDamage("footL", 6)
         else:
-            self.body.moveLimb("rightLeg", 0, 0)
+            self.body.moveLimb("rightLeg", -30,-30)
             self.dealDamage("kneeR", 5)
             self.dealDamage("footR", 6)
     
@@ -321,51 +321,41 @@ class fighter(object):
     
     def strongKick1(self):
         if self.opponent.body.center < self.body.center:
-            self.body.rotateAroundHip("hipR", 30)
-            self.body.moveLimb("leftLeg", 210, 260)
+            self.body.moveLimb("leftLeg", 215, 240)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
         else:
-            self.body.rotateAroundHip("hipL", 30)
-            self.body.moveLimb("rightLeg", 330, 290)
+            self.body.moveLimb("rightLeg", 320, 300)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
 
     def strongKick2(self): 
         if self.opponent.body.center < self.body.center:
             self.body.rotateAroundHip("hipR", 45)
-            self.body.moveLimb("leftLeg", 210, 260)
+            self.body.moveLimb("leftLeg", 200, 225)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
         else:
             self.body.rotateAroundHip("hipL", 45)
-            self.body.moveLimb("rightLeg", 330, 290)
+            self.body.moveLimb("rightLeg", 340, 315)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
 
-    def strongKick3(self): pass
-        # if self.opponent.body.center < self.body.center:
-        #     self.body.rotateAroundHip("hipR", 30)
-        #     self.body.moveLimb("leftLeg", 210, 260)
-        # else:
-        #     self.body.rotateAroundHip("hipL", 30)
-        #     self.body.moveLimb("rightLeg", 330, 290)
+    def strongKick3(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 135, 135)
+            self.dealDamage("kneeL", 5)
+            self.dealDamage("footL", 6)
+        else:
+            self.body.moveLimb("rightLeg", 45,45)
+            self.dealDamage("kneeR", 5)
+            self.dealDamage("footR", 6)
 
-    def strongKick4(self): pass
-        # if self.opponent.body.center < self.body.center:
-        #     self.body.rotateAroundHip("hipR", -30)
-        #     self.body.moveLimb("leftLeg", 210, 260)
-        # else:
-        #     self.body.rotateAroundHip("hipL", -30)
-        #     self.body.moveLimb("rightLeg", 330, 290)
-
-    def strongKick5(self): pass
-        # if self.opponent.body.center < self.body.center:
-        #     self.body.rotateAroundHip("hipR", -30)
-        #     self.body.moveLimb("leftLeg", 210, 260)
-        # else:
-        #     self.body.rotateAroundHip("hipL", -30)
-        #     self.body.moveLimb("rightLeg", 330, 290)
-
-    def strongKick6(self): pass
-        # if self.opponent.body.center < self.body.center:
-        #     self.body.rotateAroundHip("hipR", -30)
-        #     self.body.moveLimb("leftLeg", 210, 260)
-        # else:
-        #     self.body.rotateAroundHip("hipL", -30)
-        #     self.body.moveLimb("rightLeg", 330, 290)
+    def strongKick4(self): 
+        if self.opponent.body.center < self.body.center:
+            self.body.moveLimb("leftLeg", 200, 200)
+        else:
+            self.body.moveLimb("rightLeg", 340, 340)
 
     def quickCombo1(self):
         self.body.moveLimb("leftArm", 225, 105)
