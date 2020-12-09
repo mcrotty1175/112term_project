@@ -1,3 +1,8 @@
+# Basically the entire frame work for my actual character
+# One Main Fighter Class
+# Two Fighter Subclasses (AI and xbox controller)
+# One Body Class
+
 from simpleQueue import simpleQueue
 import X_input
 import math, random, threading

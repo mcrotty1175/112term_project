@@ -1,4 +1,8 @@
-# cmu_112_graphics.py
+# Modified from cmu_112_graphics.py v0.8.6
+# Added an if statement that allows me to set a constant refresh rate that is
+# different from timerDelay (Thanks Prof Kosbie for the help!)
+
+# my_cmu_112_graphics.py
 # version 0.8.6
 
 # Pre-release for CMU 15-112-f20

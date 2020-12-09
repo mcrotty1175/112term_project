@@ -1,3 +1,4 @@
+# Custom Queue class to track inputs for combos
 class simpleQueue(object):
     buttonMap = {
             1: "Up",
@@ -81,4 +82,3 @@ class simpleQueue(object):
             return self.list
         else:
             return self.pop().findCombos(combo)
-

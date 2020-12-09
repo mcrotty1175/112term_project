@@ -1,3 +1,6 @@
+# Run this file to get everything working
+# Keyboards are now supported (Be sure to press and hold when moving)
+
 # Background Image found on https://entertainment.ie/gaming/pics-heres-the-real-life-locations-of-street-fighter-iis-stages-277425/
 
 from my_cmu_112_graphics import *
