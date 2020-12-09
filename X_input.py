@@ -339,6 +339,15 @@ def sampleJoystick(inputIndex):
     while True:
         yield j.dispatch_events()
 
+def checkControllers():
+    joysticks = XInputJoystick.enumerate_devices()
+    device_numbers = list(map(attrgetter('device_number'), joysticks))
+
+    if len(joysticks) > 0:
+        print('found %d devices: %s' % (len(joysticks), device_numbers))
+    
+    return len(joysticks)
+
 
 if __name__ == "__main__":
     player1 = sampleJoystick(0)

@@ -473,7 +473,7 @@ class AI(fighter):
         
         # Determine Advantage
         if healthMe > healthOther: # Stall if winning
-            moveRightOdds += 8 if enemySide == 1 else enemySide * 8
+            moveRightOdds += 2 if enemySide == 1 else enemySide * 2
             moveLeftOdds -= 3 if enemySide == 1 else enemySide * 3
         else: # Be aggresive if losing
             moveRightOdds -= 3 if enemySide == 1 else enemySide * 3
@@ -513,6 +513,7 @@ class AI(fighter):
                 aOdds += 6
                 bOdds += 1
                 xOdds += 3
+                yOdds += 7
 
             if self.opponent.crouching == True:
                 xOdds += 8
@@ -522,7 +523,8 @@ class AI(fighter):
 
             attackOdds.extend([0] * max(0, aOdds))
             attackOdds.extend([1] * max(0, bOdds))
-            attackOdds.extend([1] * max(0, xOdds))
+            attackOdds.extend([2] * max(0, xOdds))
+            attackOdds.extend([3] * yOdds)
             exec(self.outputs[random.choice(attackOdds)])
             self.move()
 
